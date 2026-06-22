@@ -612,6 +612,15 @@ function closeConfirmModal(){
   document.getElementById('confirmOverlay').classList.remove('open');
   pendingCheckin = null;
 }
+function openSuccessModal(mn, teamName, dayIdx){
+  var days = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
+  document.getElementById('successMemberInfo').innerHTML =
+    '✅ &nbsp;<strong>'+mn+'</strong> · ทีม '+teamName+' · เช็คอินวัน'+days[dayIdx]+' สำเร็จแล้ว!';
+  document.getElementById('successOverlay').classList.add('open');
+}
+function closeSuccessModal(){
+  document.getElementById('successOverlay').classList.remove('open');
+}
 document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
 document.getElementById('confirmOverlay').addEventListener('click', function(e){
   if(e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
@@ -619,8 +628,10 @@ document.getElementById('confirmOverlay').addEventListener('click', function(e){
 document.getElementById('btnConfirmOk').addEventListener('click', function(){
   if(!pendingCheckin) return;
   var p = pendingCheckin;
+  var teamName = TEAMS.filter(function(t){return t.id===p.tid;})[0].name;
   setChecked(p.w, p.tid, p.mn, p.dayIdx, true);
   closeConfirmModal();
+  setTimeout(function(){ openSuccessModal(p.mn, teamName, p.dayIdx); }, 150);
 });
 
 /* ── init ── */
@@ -638,6 +649,23 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
       +'<div style="color:var(--red)">โหลดข้อมูลไม่สำเร็จ<br><small>'+e.message+'</small></div>';
   });
 </script>
+
+<!-- Success Modal -->
+<div id="successOverlay" class="modal-overlay" onclick="closeSuccessModal()">
+  <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+    <div style="font-size:52px;margin-bottom:8px;line-height:1.2">🎉</div>
+    <div style="font-size:40px;margin-bottom:16px;line-height:1.2">💪🏃‍♂️🔥</div>
+    <div class="modal-title" style="text-align:center;font-size:20px;margin-bottom:8px">เก่งมาก!</div>
+    <div style="font-size:14px;color:var(--text2);line-height:1.7;margin-bottom:20px">
+      อย่าลืมชวนเพื่อนๆ มาออกกำลังกายกันด้วยนะ 🏋️‍♀️🚴‍♂️🤸‍♀️<br>
+      <span style="font-size:13px;color:var(--text3)">ทีมที่แข็งแกร่งคือทีมที่ออกกำลังกายด้วยกัน! 🌟</span>
+    </div>
+    <div id="successMemberInfo" style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--r);padding:10px 14px;margin-bottom:20px;font-size:13px;color:var(--green);font-weight:500"></div>
+    <button class="btn-ok" onclick="closeSuccessModal()" style="background:var(--green);border-color:var(--green);width:100%;padding:13px;font-size:14px">
+      ✨ ขอบคุณ เดี๋ยวบอกเพื่อนเลย!
+    </button>
+  </div>
+</div>
 
 <!-- Confirm Check-in Modal -->
 <div id="confirmOverlay" class="modal-overlay">
