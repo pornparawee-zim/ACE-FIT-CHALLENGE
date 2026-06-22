@@ -621,6 +621,13 @@ function openSuccessModal(mn, teamName, dayIdx){
 function closeSuccessModal(){
   document.getElementById('successOverlay').classList.remove('open');
 }
+document.getElementById('successOverlay').addEventListener('click', function(e){
+  if(e.target === document.getElementById('successOverlay')) closeSuccessModal();
+});
+document.getElementById('btnSuccessOk').addEventListener('click', function(e){
+  e.stopPropagation();
+  closeSuccessModal();
+});
 document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
 document.getElementById('confirmOverlay').addEventListener('click', function(e){
   if(e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
@@ -651,7 +658,7 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
 </script>
 
 <!-- Success Modal -->
-<div id="successOverlay" class="modal-overlay" onclick="closeSuccessModal()">
+<div id="successOverlay" class="modal-overlay">
   <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
     <div style="font-size:52px;margin-bottom:8px;line-height:1.2">🎉</div>
     <div style="font-size:40px;margin-bottom:16px;line-height:1.2">💪🏃‍♂️🔥</div>
@@ -661,7 +668,7 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
       <span style="font-size:13px;color:var(--text3)">ทีมที่แข็งแกร่งคือทีมที่ออกกำลังกายด้วยกัน! 🌟</span>
     </div>
     <div id="successMemberInfo" style="background:var(--green-bg);border:1px solid var(--green-bd);border-radius:var(--r);padding:10px 14px;margin-bottom:20px;font-size:13px;color:var(--green);font-weight:500"></div>
-    <button class="btn-ok" onclick="closeSuccessModal()" style="background:var(--green);border-color:var(--green);width:100%;padding:13px;font-size:14px">
+    <button class="btn-ok" id="btnSuccessOk" style="background:var(--green);border-color:var(--green);width:100%;padding:13px;font-size:14px">
       ✨ ขอบคุณ เดี๋ยวบอกเพื่อนเลย!
     </button>
   </div>
