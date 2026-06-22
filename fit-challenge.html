@@ -246,6 +246,7 @@ var SB_KEY = 'sb_publishable_eMIAJRc_7Nl4jemG6wq-nw__SoXKVAk';
 var sb = null; /* initialized after SDK loads */
 
 var checked = {}; /* local cache: "w-tid-m-d" → true */
+var pendingCheckin = null; /* { w, tid, m, d } waiting for confirm */
 
 function ckey(w,tid,m,d){ return w+'-'+tid+'-'+m+'-'+d; }
 function isChecked(w,tid,m,d){ return checked[ckey(w,tid,m,d)] === true; }
@@ -433,12 +434,12 @@ function renderCheckin(){
             var curOn  = isChecked(week, tid, mn, dayIdx);
 
             if(!curOn && curPts < 4){
-              /* anyone can check in */
-              setChecked(week, tid, mn, dayIdx, true);
-              renderCheckin();
-              renderBoard();
-            } else if(curOn && isAdmin){
-              /* only admin can uncheck */
+              /* show confirm modal before saving */
+              openConfirmModal(week, tid, mn, dayIdx);
+              return;
+            }
+            /* only admin can uncheck — no confirm needed */
+            if(curOn && isAdmin){
               setChecked(week, tid, mn, dayIdx, false);
               renderCheckin();
               renderBoard();
@@ -596,6 +597,32 @@ function submitPw(){
   }
 }
 
+/* ── confirm modal ── */
+var DAY_FULL_TH = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
+function openConfirmModal(w, tid, mn, dayIdx){
+  pendingCheckin = { w:w, tid:tid, mn:mn, dayIdx:dayIdx };
+  var teamName = TEAMS.filter(function(t){return t.id===tid;})[0].name;
+  document.getElementById('confirmInfo').innerHTML =
+    '<span style="background:var(--surface2);padding:4px 10px;border-radius:100px">'
+    + '👤 <strong>'+mn+'</strong> · ทีม '+teamName+' · วัน'+DAY_FULL_TH[dayIdx]
+    +'</span>';
+  document.getElementById('confirmOverlay').classList.add('open');
+}
+function closeConfirmModal(){
+  document.getElementById('confirmOverlay').classList.remove('open');
+  pendingCheckin = null;
+}
+document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
+document.getElementById('confirmOverlay').addEventListener('click', function(e){
+  if(e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
+});
+document.getElementById('btnConfirmOk').addEventListener('click', function(){
+  if(!pendingCheckin) return;
+  var p = pendingCheckin;
+  setChecked(p.w, p.tid, p.mn, p.dayIdx, true);
+  closeConfirmModal();
+});
+
 /* ── init ── */
 import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
   .then(function(mod){
@@ -611,5 +638,39 @@ import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
       +'<div style="color:var(--red)">โหลดข้อมูลไม่สำเร็จ<br><small>'+e.message+'</small></div>';
   });
 </script>
+
+<!-- Confirm Check-in Modal -->
+<div id="confirmOverlay" class="modal-overlay">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-handle"></div>
+    <div style="text-align:center;font-size:32px;margin-bottom:12px">📸</div>
+    <div class="modal-title" style="text-align:center">ส่งรูปหลักฐานก่อนนะ!</div>
+    <div class="modal-desc" style="text-align:center;margin-top:6px">
+      ส่งรูปออกกำลังกายเข้ากลุ่ม<br>
+      <strong style="color:var(--text)">Telegram</strong> ก่อน แล้วกดยืนยันด้านล่าง
+    </div>
+    <div style="background:var(--surface2);border-radius:var(--r);padding:12px 14px;margin-bottom:16px;font-size:13px;color:var(--text2);line-height:1.6">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="background:#29A9EB;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">1</span>
+        ถ่ายรูปขณะออกกำลังกาย
+      </div>
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+        <span style="background:#29A9EB;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">2</span>
+        ส่งรูปเข้ากลุ่ม Telegram
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span style="background:#29A9EB;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0">3</span>
+        กลับมากดยืนยันที่นี่
+      </div>
+    </div>
+    <div id="confirmInfo" style="font-size:12px;color:var(--text2);text-align:center;margin-bottom:14px"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnConfirmCancel">ยกเลิก</button>
+      <button class="btn-ok" id="btnConfirmOk" style="background:var(--green);border-color:var(--green)">
+        <i class="ti ti-check" style="margin-right:4px"></i>ส่งรูปแล้ว ยืนยัน!
+      </button>
+    </div>
+  </div>
+</div>
 </body>
 </html>
