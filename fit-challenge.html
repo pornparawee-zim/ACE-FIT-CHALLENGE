@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>ACE FIT CHALLENGE</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+Thai:wght@400;500;600&family=IBM+Plex+Mono:wght@500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/dist/tabler-icons.min.css">
+<style>
+:root {
+  --bg:#F7F6F2;--surface:#fff;--surface2:#F0EEE8;
+  --border:#E2DDD4;--border2:#CDC8BE;
+  --text:#1A1916;--text2:#6B6760;--text3:#9B9790;
+  --green:#1A7A52;--green-bg:#E8F5EE;--green-bd:#A8D9BC;
+  --red:#C0392B;--red-bg:#FDECEA;
+  --amber:#8A5E0A;--blue:#1A5FA8;
+  --a-c:#1A5FA8;--a-bg:#E8F1FC;--a-bd:#A8C8F0;
+  --b-c:#1A7A52;--b-bg:#E8F5EE;--b-bd:#A8D9BC;
+  --c-c:#8A5E0A;--c-bg:#FDF3E3;--c-bd:#E8C87A;
+  --d-c:#7A1A52;--d-bg:#F5E8F1;--d-bd:#D9A8C8;
+  --r:12px;--rl:16px;
+  --font:'IBM Plex Sans Thai',sans-serif;
+  --mono:'IBM Plex Mono',monospace;
+}
+@media(prefers-color-scheme:dark){:root{
+  --bg:#1A1916;--surface:#242320;--surface2:#2E2C28;
+  --border:#3A3830;--border2:#4A4840;
+  --text:#F0EDE6;--text2:#9B9790;--text3:#6B6760;
+  --green-bg:#0E2E1C;--green-bd:#1A5A38;--red-bg:#2E1410;
+  --blue:#5A9FE8;
+  --a-bg:#0E1E30;--a-bd:#2A4A70;--b-bg:#0E2E1C;--b-bd:#1A5A38;
+  --c-bg:#2A2010;--c-bd:#5A4010;--d-bg:#2A1020;--d-bd:#5A2848;
+}}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-height:100vh}
+.app{max-width:480px;margin:0 auto;padding:0 0 80px}
+@media(min-width:540px){.app{max-width:600px}}
+
+.topbar{padding:20px 16px 0;display:flex;align-items:center;justify-content:space-between;gap:12px}
+.topbar-title{font-size:15px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.week-pill{display:flex;align-items:center;background:var(--surface);border:1px solid var(--border);border-radius:100px;overflow:hidden}
+.week-pill button{background:none;border:none;width:36px;height:32px;cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;font-size:15px}
+.week-pill button:active{background:var(--surface2)}
+.week-label{font-size:12px;font-weight:500;color:var(--text);padding:0 4px;white-space:nowrap;font-family:var(--mono)}
+
+.admin-bar{margin:12px 16px 0;padding:9px 12px;border-radius:var(--r);display:flex;align-items:center;justify-content:space-between;gap:10px;border:1px solid var(--border);background:var(--surface2)}
+.admin-bar.unlocked{background:var(--green-bg);border-color:var(--green-bd)}
+.admin-bar-left{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);overflow:hidden}
+.admin-bar.unlocked .admin-bar-left{color:var(--green)}
+.admin-bar-left i{font-size:15px;flex-shrink:0}
+.admin-bar-text{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.admin-btn{font-size:12px;font-weight:500;padding:5px 12px;border-radius:100px;cursor:pointer;border:1px solid var(--border2);background:var(--surface);color:var(--text);white-space:nowrap}
+.admin-btn.danger{border-color:#E8A8A0;color:var(--red);background:var(--red-bg)}
+
+.tabs{display:flex;gap:6px;padding:14px 16px 0}
+.tab{flex:1;padding:9px 4px;font-size:12px;font-weight:500;border:1px solid var(--border);border-radius:var(--r);background:var(--surface);cursor:pointer;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px}
+.tab i{font-size:15px}
+.tab.active{background:var(--text);color:var(--bg);border-color:var(--text)}
+
+.section{display:none;padding:12px 16px 0}
+.section.active{display:block}
+
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:10px}
+.team-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.team-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:.03em}
+.badge-alpha{background:var(--a-bg);color:var(--a-c);border:1px solid var(--a-bd)}
+.badge-bravo{background:var(--b-bg);color:var(--b-c);border:1px solid var(--b-bd)}
+.badge-charlie{background:var(--c-bg);color:var(--c-c);border:1px solid var(--c-bd)}
+.badge-delta{background:var(--d-bg);color:var(--d-c);border:1px solid var(--d-bd)}
+.team-score-num{font-size:22px;font-weight:600;color:var(--text);font-family:var(--mono);line-height:1}
+.team-score-label{font-size:10px;color:var(--text3);text-align:right;margin-top:1px}
+
+.members-list{display:flex;flex-direction:column;gap:8px}
+@media(min-width:400px){.members-list{display:grid;grid-template-columns:repeat(3,1fr)}}
+.member-card{background:var(--surface2);border-radius:var(--r);padding:10px}
+.member-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
+@media(min-width:400px){.member-top{flex-direction:column;align-items:flex-start;gap:4px}}
+.member-name{font-size:13px;font-weight:600;color:var(--text)}
+.pts-badge{font-size:11px;font-weight:500;font-family:var(--mono);color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:1px 7px}
+.pts-badge.full{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
+.day-dots{display:flex;gap:5px;flex-wrap:wrap}
+
+.dot{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);font-size:10px;font-weight:500;color:var(--text3);display:flex;align-items:center;justify-content:center;user-select:none;flex-shrink:0;transition:background .12s,border-color .12s,transform .1s}
+@media(min-width:400px){.dot{width:30px;height:30px;font-size:9px}}
+.dot.active{background:var(--green);border-color:var(--green);color:#fff}
+.dot.tappable{cursor:pointer}
+.dot.tappable:active{transform:scale(.88)}
+.dot.capped{opacity:.25;cursor:not-allowed}
+
+.status-bar{margin-top:10px;padding:8px 10px;border-radius:var(--r);font-size:12px;display:flex;align-items:center;gap:7px;line-height:1.4}
+.status-bar i{font-size:15px;flex-shrink:0}
+.status-bar.bonus{background:var(--green-bg);color:var(--green)}
+.status-bar.penalty{background:var(--red-bg);color:var(--red)}
+.status-bar.neutral{background:var(--surface2);color:var(--text2)}
+
+.lb-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden;margin-bottom:10px}
+.lb-row{display:flex;align-items:center;padding:12px 14px;border-bottom:1px solid var(--border);gap:10px}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-size:18px;width:26px;text-align:center;flex-shrink:0}
+.lb-body{flex:1;min-width:0}
+.lb-name{font-size:13px;font-weight:600;color:var(--text);display:flex;align-items:center;gap:6px}
+.lb-members{font-size:11px;color:var(--text3);margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.lb-bar-wrap{background:var(--surface2);border-radius:4px;height:4px;margin-top:6px;overflow:hidden}
+.lb-bar{height:100%;border-radius:4px;transition:width .5s}
+.lb-week{font-size:10px;color:var(--text3);margin-top:3px}
+.lb-total{text-align:right;flex-shrink:0}
+.lb-total-num{font-size:18px;font-weight:600;font-family:var(--mono);color:var(--text);line-height:1}
+.lb-total-label{font-size:10px;color:var(--text3);margin-top:2px}
+.lb-tag{font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;white-space:nowrap;margin-left:4px;vertical-align:middle}
+.bonus-tag{background:var(--green-bg);color:var(--green);border:1px solid var(--green-bd)}
+.bonus-preview-tag{background:#E8F5EE;color:#1A7A52;border:1px dashed #A8D9BC;opacity:.85}
+.penalty-tag{background:var(--red-bg);color:var(--red);border:1px solid #F5B8B4}
+.warning-tag{background:#FDF3E3;color:#8A5E0A;border:1px solid #E8C87A}
+
+.chart-label{font-size:12px;color:var(--text2);margin-bottom:8px;font-weight:500;display:flex;justify-content:space-between;align-items:center}
+.legend{display:flex;gap:10px}
+.legend-item{display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text2)}
+.legend-dot{width:8px;height:8px;border-radius:2px}
+.chart-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chart-table{min-width:460px}
+.chart-row{display:flex;align-items:flex-end;padding:6px 14px;border-bottom:1px solid var(--border);gap:8px}
+.chart-row:last-child{border-bottom:none}
+.chart-wk{font-size:10px;color:var(--text3);width:50px;flex-shrink:0;font-family:var(--mono);padding-bottom:3px}
+.chart-bars{flex:1;display:flex;gap:4px;align-items:flex-end}
+.chart-bar-wrap{flex:1;display:flex;flex-direction:column;align-items:center;gap:2px}
+.chart-bar{width:100%;border-radius:3px 3px 0 0}
+.chart-bar-val{font-size:9px;color:var(--text3);font-family:var(--mono)}
+
+.stat-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin-bottom:12px}
+@media(min-width:400px){.stat-grid{grid-template-columns:repeat(4,1fr)}}
+.stat-box{background:var(--surface);border:1px solid var(--border);border-radius:var(--r);padding:12px;text-align:center}
+.stat-val{font-size:24px;font-weight:600;font-family:var(--mono);color:var(--text);line-height:1}
+.stat-label{font-size:11px;color:var(--text2);margin-top:3px}
+.rules-list{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);overflow:hidden}
+.rule-item{display:flex;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border);font-size:13px;color:var(--text2);line-height:1.55}
+.rule-item:last-child{border-bottom:none}
+.rule-item i{font-size:17px;flex-shrink:0;margin-top:1px}
+
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:flex-end;justify-content:center;z-index:100;opacity:0;pointer-events:none;transition:opacity .2s}
+.modal-overlay.open{opacity:1;pointer-events:all}
+@media(min-width:480px){.modal-overlay{align-items:center}}
+.modal{background:var(--surface);border-radius:var(--rl) var(--rl) 0 0;padding:20px 20px calc(20px + env(safe-area-inset-bottom));width:100%;max-width:420px;transform:translateY(40px);transition:transform .25s}
+@media(min-width:480px){.modal{border-radius:var(--rl);padding:24px;transform:scale(.96)}}
+.modal-overlay.open .modal{transform:translateY(0) scale(1)}
+.modal-handle{width:36px;height:4px;background:var(--border2);border-radius:2px;margin:0 auto 18px}
+@media(min-width:480px){.modal-handle{display:none}}
+.modal-title{font-size:17px;font-weight:600;color:var(--text);margin-bottom:4px}
+.modal-desc{font-size:13px;color:var(--text2);margin-bottom:16px}
+.modal-input{width:100%;padding:12px 14px;border:1.5px solid var(--border);border-radius:var(--r);font-size:16px;font-family:var(--font);background:var(--surface2);color:var(--text);margin-bottom:8px;outline:none}
+.modal-input:focus{border-color:var(--text)}
+.modal-err{font-size:12px;color:var(--red);min-height:16px;margin-bottom:14px}
+.modal-actions{display:flex;gap:8px}
+.modal-actions button{flex:1;padding:13px;font-size:14px;font-weight:500;font-family:var(--font);border-radius:var(--r);cursor:pointer}
+.btn-cancel{background:var(--surface2);border:1px solid var(--border);color:var(--text2)}
+.btn-ok{background:var(--text);border:1px solid var(--text);color:var(--bg)}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="topbar">
+    <div class="topbar-title">🏆 ACE FIT CHALLENGE</div>
+    <div class="week-pill">
+      <button id="btnPrev" aria-label="ก่อนหน้า"><i class="ti ti-chevron-left"></i></button>
+      <span class="week-label" id="weekLabel"></span>
+      <button id="btnNext" aria-label="ถัดไป"><i class="ti ti-chevron-right"></i></button>
+    </div>
+  </div>
+
+  <div id="adminBar" class="admin-bar">
+    <div class="admin-bar-left">
+      <i class="ti ti-lock" id="adminIcon"></i>
+      <span class="admin-bar-text" id="adminBarText"></span>
+    </div>
+    <div style="display:flex;gap:6px;flex-shrink:0">
+      <button class="admin-btn" id="adminResetBtn" style="display:none;border-color:#E8A8A0;color:var(--red);background:var(--red-bg)">ล้างข้อมูล</button>
+      <button class="admin-btn" id="adminBtn">Admin</button>
+    </div>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" data-tab="checkin"><i class="ti ti-checkbox"></i>เช็คอิน</button>
+    <button class="tab" data-tab="board"><i class="ti ti-chart-bar"></i>คะแนน</button>
+    <button class="tab" data-tab="rules"><i class="ti ti-info-circle"></i>กติกา</button>
+  </div>
+
+  <div id="sec-checkin" class="section active">
+    <div id="loadingState" style="text-align:center;padding:3rem 1rem;color:var(--text2);font-size:14px">
+      <div style="font-size:28px;margin-bottom:12px">⏳</div>
+      กำลังโหลดข้อมูล...
+    </div>
+  </div>
+  <div id="sec-board" class="section"></div>
+  <div id="sec-rules" class="section">
+    <div class="stat-grid">
+      <div class="stat-box"><div class="stat-val">12</div><div class="stat-label">สัปดาห์</div></div>
+      <div class="stat-box"><div class="stat-val">4</div><div class="stat-label">วันสูงสุด/คน/สัปดาห์</div></div>
+      <div class="stat-box"><div class="stat-val">+2</div><div class="stat-label">โบนัสทีม</div></div>
+      <div class="stat-box"><div class="stat-val">5K</div><div class="stat-label">รางวัล (บาท)</div></div>
+    </div>
+    <div class="rules-list">
+      <div class="rule-item"><i class="ti ti-clock" style="color:var(--green)"></i><span>ออกกำลังกายอย่างน้อย <strong>30 นาที</strong> = 1 แต้ม/วัน เลือกวันไหนก็ได้ใน <strong>จ–อา</strong> สูงสุด <strong>4 วัน/คน/สัปดาห์</strong></span></div>
+      <div class="rule-item"><i class="ti ti-camera" style="color:var(--blue)"></i><span>ถ่ายรูปส่งเข้ากลุ่ม Telegram ทุกครั้งที่ออกกำลังกาย แล้วมาติ๊กในชีทนี้</span></div>
+      <div class="rule-item"><i class="ti ti-users" style="color:var(--green)"></i><span>คะแนนสะสมเป็นทีม ทีมละ 3 คน ช่วยกันเก็บ!</span></div>
+      <div class="rule-item"><i class="ti ti-sparkles" style="color:var(--amber)"></i><span><strong>โบนัส +2 แต้ม</strong> ถ้าทุกคนในทีมได้คนละ 3 แต้มขึ้นไปในสัปดาห์นั้น</span></div>
+      <div class="rule-item"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i><span><strong>Penalty -1 แต้ม</strong> ถ้ามีสมาชิกคนใดไม่ออกกำลังกายเลยในสัปดาห์นั้น</span></div>
+      <div class="rule-item"><i class="ti ti-calendar-event" style="color:var(--blue)"></i><span>สรุปคะแนนทุก <strong>วันจันทร์</strong> · ประกาศผล <strong>11 ก.ย. 2569</strong></span></div>
+    </div>
+  </div>
+</div>
+
+<div id="modalOverlay" class="modal-overlay">
+  <div class="modal">
+    <div class="modal-handle"></div>
+    <div class="modal-title">Admin Login</div>
+    <div class="modal-desc">ใส่รหัสผ่านเพื่อเข้าสู่ระบบแก้ไข</div>
+    <input class="modal-input" type="password" id="pwInput" placeholder="รหัสผ่าน" autocomplete="current-password">
+    <div class="modal-err" id="modalErr"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" id="btnCancel">ยกเลิก</button>
+      <button class="btn-ok" id="btnOk">เข้าสู่ระบบ</button>
+    </div>
+  </div>
+</div>
+
+<script type="module">
+var TEAMS = [
+  { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy'] },
+  { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay'] },
+  { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw'] },
+  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan'] }
+];
+var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
+var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
+var TOTAL_WEEKS = 12;
+var START = new Date(2026,5,22);
+var ADMIN_PW = 'ACE2026';
+
+var week = 1;
+var isAdmin = false;
+
+/* ── Supabase ── */
+var SB_URL = 'https://xfitexjpxzbvijclgnfn.supabase.co';
+var SB_KEY = 'sb_publishable_eMIAJRc_7Nl4jemG6wq-nw__SoXKVAk';
+var sb = null; /* initialized after SDK loads */
+
+var checked = {}; /* local cache: "w-tid-m-d" → true */
+
+function ckey(w,tid,m,d){ return w+'-'+tid+'-'+m+'-'+d; }
+function isChecked(w,tid,m,d){ return checked[ckey(w,tid,m,d)] === true; }
+
+/* load all rows from Supabase into local cache, then render */
+function loadAll(){
+  sb.from('checkins').select('week,team_id,member,day,checked')
+    .then(function(res){
+      if(res.error){ console.error(res.error); return; }
+      checked = {};
+      res.data.forEach(function(r){
+        if(r.checked) checked[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
+      });
+      renderCheckin();
+      renderBoard();
+    });
+}
+
+/* upsert one row (insert or update) */
+function setChecked(w,tid,m,d,val){
+  /* update local cache immediately for snappy UI */
+  var k = ckey(w,tid,m,d);
+  checked[k] = val;
+  renderCheckin();
+  renderBoard();
+  /* sync to Supabase */
+  if(val){
+    sb.from('checkins').upsert(
+      { week:w, team_id:tid, member:m, day:d, checked:true, updated_at: new Date().toISOString() },
+      { onConflict: 'week,team_id,member,day' }
+    ).then(function(res){ if(res.error) console.error('upsert error', res.error); });
+  } else {
+    sb.from('checkins')
+      .delete()
+      .eq('week',w).eq('team_id',tid).eq('member',m).eq('day',d)
+      .then(function(res){ if(res.error) console.error('delete error', res.error); });
+  }
+}
+
+/* realtime subscription — other devices update instantly */
+function startRealtime(){
+  sb.channel('checkins-changes')
+  .on('postgres_changes', { event:'*', schema:'public', table:'checkins' }, function(payload){
+    var r = payload.new || payload.old;
+    if(!r) return;
+    var k = r.week+'-'+r.team_id+'-'+r.member+'-'+r.day;
+    if(payload.eventType === 'DELETE') { delete checked[k]; }
+    else { checked[k] = r.checked; }
+    renderCheckin();
+    renderBoard();
+  })
+  .subscribe();
+}
+
+function memberPts(w,tid,m){
+  var n=0;
+  for(var d=0;d<7;d++) if(isChecked(w,tid,m,d)) n++;
+  return n;
+}
+function isWeekFinished(w){
+  /* week ends Sunday 23:59 — compare end-of-day Sunday vs now */
+  var endOfWeek = new Date(START);
+  endOfWeek.setDate(endOfWeek.getDate() + (w-1)*7 + 6); /* Sunday of that week */
+  endOfWeek.setHours(23,59,59,999);
+  return new Date() > endOfWeek;
+}
+function teamWeekPts(w,tid){
+  var team = TEAMS.filter(function(t){return t.id===tid;})[0];
+  var base = 0;
+  team.members.forEach(function(m){ base += memberPts(w,tid,m); });
+  /* bonus/penalty only triggers after week ends (Sunday 23:59) */
+  if(base > 0 && isWeekFinished(w)){
+    var allThree = team.members.every(function(m){ return memberPts(w,tid,m)>=3; });
+    var anyZero  = team.members.some(function(m){  return memberPts(w,tid,m)===0; });
+    if(allThree) base += 2;
+    if(anyZero)  base = Math.max(0, base-1);
+  }
+  return base;
+}
+function teamTotalPts(tid){
+  var s=0;
+  for(var w=1;w<=TOTAL_WEEKS;w++) s+=teamWeekPts(w,tid);
+  return s;
+}
+function bonusState(w,tid){
+  var team = TEAMS.filter(function(t){return t.id===tid;})[0];
+  var finished = isWeekFinished(w);
+  var anyZero  = team.members.some(function(m){return memberPts(w,tid,m)===0;});
+  var allThree = team.members.every(function(m){return memberPts(w,tid,m)>=3;});
+  var hasAny   = team.members.some(function(m){return memberPts(w,tid,m)>0;});
+  if(!hasAny) return 'neutral'; /* no activity yet */
+  if(finished && anyZero)  return 'penalty';
+  if(finished && allThree) return 'bonus';
+  if(!finished && allThree) return 'bonus';   /* show bonus preview if already done */
+  if(!finished && anyZero)  return 'warning'; /* in-progress warning */
+  return 'neutral';
+}
+
+/* ── render checkin ── */
+function renderCheckin(){
+  /* admin bar */
+  var bar  = document.getElementById('adminBar');
+  var icon = document.getElementById('adminIcon');
+  var txt  = document.getElementById('adminBarText');
+  var btn  = document.getElementById('adminBtn');
+  var resetBtn = document.getElementById('adminResetBtn');
+  if(isAdmin){
+    bar.classList.add('unlocked');
+    icon.className = 'ti ti-lock-open';
+    txt.textContent = 'Admin Mode — แก้ไข/ยกเลิกได้';
+    btn.className = 'admin-btn danger';
+    btn.textContent = 'ออกจาก Admin';
+    resetBtn.style.display = 'block';
+  } else {
+    bar.classList.remove('unlocked');
+    icon.className = 'ti ti-lock';
+    txt.textContent = 'กดวันเพื่อเช็คอิน — Admin เท่านั้นยกเลิกได้';
+    btn.className = 'admin-btn';
+    btn.textContent = 'Admin';
+    resetBtn.style.display = 'none';
+  }
+
+  var wrap = document.getElementById('sec-checkin');
+  wrap.innerHTML = ''; /* clears loading state too */
+
+  TEAMS.forEach(function(team){
+    var wpts = teamWeekPts(week, team.id);
+    var bs   = bonusState(week, team.id);
+
+    var statusCls, statusIcon, statusMsg;
+    var weekDone = isWeekFinished(week);
+    if(bs==='bonus' && weekDone)    { statusCls='bonus';   statusIcon='ti-sparkles';       statusMsg='โบนัส +2 ได้รับแล้ว — ทุกคนครบ 3 แต้มขึ้นไป!'; }
+    else if(bs==='bonus')            { statusCls='bonus';   statusIcon='ti-sparkles';       statusMsg='กำลังจะได้โบนัส +2 — รักษาไว้ได้เลย!'; }
+    else if(bs==='penalty')          { statusCls='penalty'; statusIcon='ti-alert-triangle'; statusMsg='Penalty -1 — มีสมาชิกไม่ได้ออกกำลังกายสัปดาห์นี้'; }
+    else if(bs==='warning')          { statusCls='penalty'; statusIcon='ti-alert-triangle'; statusMsg='เตือน — ยังมีสมาชิกที่ยังไม่ได้เช็คอินสัปดาห์นี้'; }
+    else                             { statusCls='neutral'; statusIcon='ti-info-circle';    statusMsg='ต้องทุกคนได้ 3+ แต้มเพื่อรับโบนัส'; }
+
+    var card = document.createElement('div');
+    card.className = 'team-card';
+
+    /* header */
+    var hdr = document.createElement('div');
+    hdr.className = 'team-header';
+    hdr.innerHTML = '<div><span class="team-badge '+team.badge+'">'+team.name+'</span></div>'
+      +'<div><div class="team-score-num">'+wpts+'</div><div class="team-score-label">แต้มสัปดาห์นี้</div></div>';
+    card.appendChild(hdr);
+
+    /* members */
+    var mlist = document.createElement('div');
+    mlist.className = 'members-list';
+
+    team.members.forEach(function(memberName){
+      var pts    = memberPts(week, team.id, memberName);
+      var isFull = pts >= 4;
+
+      var mc = document.createElement('div');
+      mc.className = 'member-card';
+
+      var mtop = document.createElement('div');
+      mtop.className = 'member-top';
+      mtop.innerHTML = '<div class="member-name">'+memberName+'</div>'
+        +'<div class="pts-badge'+(isFull?' full':'')+'">'+pts+'/4</div>';
+      mc.appendChild(mtop);
+
+      var dotsRow = document.createElement('div');
+      dotsRow.className = 'day-dots';
+
+      for(var di=0; di<7; di++){
+        /* capture loop vars in IIFE */
+        (function(tid, mn, dayIdx){
+          var on      = isChecked(week, tid, mn, dayIdx);
+          var blocked = (!on && isFull);
+
+          var dot = document.createElement('div');
+          var cls = 'dot';
+          if(on)       cls += ' active';
+          if(!blocked) cls += ' tappable';
+          if(blocked)  cls += ' capped';
+          dot.className   = cls;
+          dot.title       = DAY_FULL[dayIdx];
+          dot.textContent = DAYS[dayIdx];
+
+          dot.addEventListener('click', function(){
+            var curPts = memberPts(week, tid, mn);
+            var curOn  = isChecked(week, tid, mn, dayIdx);
+
+            if(!curOn && curPts < 4){
+              /* anyone can check in */
+              setChecked(week, tid, mn, dayIdx, true);
+              renderCheckin();
+              renderBoard();
+            } else if(curOn && isAdmin){
+              /* only admin can uncheck */
+              setChecked(week, tid, mn, dayIdx, false);
+              renderCheckin();
+              renderBoard();
+            }
+          });
+
+          dotsRow.appendChild(dot);
+        })(team.id, memberName, di);
+      }
+
+      mc.appendChild(dotsRow);
+      mlist.appendChild(mc);
+    });
+
+    card.appendChild(mlist);
+
+    /* status */
+    var sb = document.createElement('div');
+    sb.className = 'status-bar '+statusCls;
+    sb.innerHTML = '<i class="ti '+statusIcon+'"></i>'+statusMsg;
+    card.appendChild(sb);
+
+    wrap.appendChild(card);
+  });
+}
+
+/* ── render board ── */
+function renderBoard(){
+  var sorted = TEAMS.map(function(t){
+    return { t:t, total:teamTotalPts(t.id), wk:teamWeekPts(week,t.id) };
+  }).sort(function(a,b){ return b.total-a.total; });
+
+  var maxPts = Math.max.apply(null, sorted.map(function(x){return x.total;}).concat([1]));
+  var medals = ['🥇','🥈','🥉'];
+
+  var lbHtml = '';
+  sorted.forEach(function(item,i){
+    var pct = Math.round(item.total/maxPts*100);
+    var bs  = bonusState(week, item.t.id);
+    var weekDone = isWeekFinished(week);
+    var tagHtml = '';
+    if(bs==='bonus' && weekDone)   tagHtml = '<span class="lb-tag bonus-tag">+2 โบนัส</span>';
+    else if(bs==='bonus')          tagHtml = '<span class="lb-tag bonus-preview-tag">+2 กำลังจะได้</span>';
+    else if(bs==='penalty')        tagHtml = '<span class="lb-tag penalty-tag">-1 Penalty</span>';
+    else if(bs==='warning')        tagHtml = '<span class="lb-tag warning-tag">⚠ มีคนยังไม่เช็ค</span>';
+    lbHtml += '<div class="lb-row">'
+      +'<div class="lb-rank">'+(medals[i]||i+1)+'</div>'
+      +'<div class="lb-body">'
+        +'<div class="lb-name"><span class="team-badge '+item.t.badge+'">'+item.t.name+'</span>'+tagHtml+'</div>'
+        +'<div class="lb-members">'+item.t.members.join(', ')+'</div>'
+        +'<div class="lb-bar-wrap"><div class="lb-bar" style="width:'+pct+'%;background:'+item.t.color+'"></div></div>'
+        +'<div class="lb-week">สัปดาห์นี้ '+item.wk+' แต้ม</div>'
+      +'</div>'
+      +'<div class="lb-total"><div class="lb-total-num">'+item.total+'</div><div class="lb-total-label">แต้มรวม</div></div>'
+      +'</div>';
+  });
+
+  var headerCols = TEAMS.map(function(t){
+    return '<div style="flex:1;text-align:center;font-size:10px;font-weight:600;color:'+t.color+'">'+t.name+'</div>';
+  }).join('');
+
+  var chartRows = '';
+  for(var wn=1;wn<=TOTAL_WEEKS;wn++){
+    var pts = TEAMS.map(function(t){ return teamWeekPts(wn,t.id); });
+    var mx  = Math.max.apply(null, pts.concat([1]));
+    var bars = '';
+    pts.forEach(function(p,ci){
+      bars += '<div class="chart-bar-wrap">'
+        +'<div class="chart-bar-val">'+(p||'')+'</div>'
+        +'<div class="chart-bar" style="height:'+(Math.round(p/mx*32)+2)+'px;background:'+TEAMS[ci].color+';opacity:'+(p?1:.15)+'"></div>'
+        +'</div>';
+    });
+    chartRows += '<div class="chart-row"><div class="chart-wk">W'+wn+'</div><div class="chart-bars">'+bars+'</div></div>';
+  }
+
+  var legend = TEAMS.map(function(t){
+    return '<div class="legend-item"><div class="legend-dot" style="background:'+t.color+'"></div>'+t.name+'</div>';
+  }).join('');
+
+  document.getElementById('sec-board').innerHTML =
+    '<div class="lb-card">'+lbHtml+'</div>'
+    +'<div class="chart-label"><span>คะแนนรายสัปดาห์</span><div class="legend">'+legend+'</div></div>'
+    +'<div class="lb-card">'
+      +'<div class="chart-row" style="border-bottom:1px solid var(--border)"><div class="chart-wk"></div><div class="chart-bars">'+headerCols+'</div></div>'
+      +'<div class="chart-scroll"><div class="chart-table">'+chartRows+'</div></div>'
+    +'</div>';
+}
+
+/* ── tabs ── */
+document.querySelectorAll('.tab').forEach(function(btn){
+  btn.addEventListener('click', function(){
+    var id = btn.getAttribute('data-tab');
+    document.querySelectorAll('.tab').forEach(function(b){ b.classList.remove('active'); });
+    btn.classList.add('active');
+    document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
+    document.getElementById('sec-'+id).classList.add('active');
+    if(id==='board') renderBoard();
+  });
+});
+
+/* ── week nav ── */
+function refresh(){
+  document.getElementById('weekLabel').textContent = (function(w){
+    var s = new Date(START); s.setDate(s.getDate()+(w-1)*7);
+    var e = new Date(s);     e.setDate(e.getDate()+6);
+    var fm = function(d){ return d.toLocaleDateString('th-TH',{day:'numeric',month:'short'}); };
+    return 'W'+w+' · '+fm(s)+'–'+fm(e);
+  })(week);
+  renderCheckin();
+  renderBoard();
+}
+document.getElementById('btnPrev').addEventListener('click', function(){
+  if(week>1){ week--; refresh(); }
+});
+document.getElementById('btnNext').addEventListener('click', function(){
+  if(week<TOTAL_WEEKS){ week++; refresh(); }
+});
+
+/* ── admin ── */
+document.getElementById('adminBtn').addEventListener('click', function(){
+  if(isAdmin){ isAdmin=false; renderCheckin(); } else { openModal(); }
+});
+document.getElementById('adminResetBtn').addEventListener('click', function(){
+  if(!isAdmin) return;
+  if(confirm('ล้างข้อมูลเช็คอินทั้งหมด 12 สัปดาห์ใช่ไหม? ไม่สามารถย้อนกลับได้')){
+    sb.from('checkins').delete().neq('id', '00000000-0000-0000-0000-000000000000')
+      .then(function(res){
+        if(res.error){ alert('เกิดข้อผิดพลาด: '+res.error.message); return; }
+        checked = {};
+        renderCheckin();
+        renderBoard();
+      });
+  }
+});
+function openModal(){
+  document.getElementById('pwInput').value='';
+  document.getElementById('modalErr').textContent='';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(function(){ document.getElementById('pwInput').focus(); },150);
+}
+function closeModal(){ document.getElementById('modalOverlay').classList.remove('open'); }
+document.getElementById('btnCancel').addEventListener('click', closeModal);
+document.getElementById('btnOk').addEventListener('click', submitPw);
+document.getElementById('pwInput').addEventListener('keydown', function(e){ if(e.key==='Enter') submitPw(); });
+document.getElementById('modalOverlay').addEventListener('click', function(e){
+  if(e.target===document.getElementById('modalOverlay')) closeModal();
+});
+function submitPw(){
+  if(document.getElementById('pwInput').value===ADMIN_PW){
+    isAdmin=true; closeModal(); renderCheckin();
+  } else {
+    document.getElementById('modalErr').textContent='รหัสผ่านไม่ถูกต้อง ลองอีกครั้ง';
+    document.getElementById('pwInput').value='';
+    document.getElementById('pwInput').focus();
+  }
+}
+
+/* ── init ── */
+import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm')
+  .then(function(mod){
+    var createClient = mod.createClient || mod.default.createClient;
+    sb = createClient(SB_URL, SB_KEY);
+    startRealtime();
+    loadAll();
+  })
+  .catch(function(e){
+    console.error('Supabase load error', e);
+    document.getElementById('loadingState').innerHTML =
+      '<div style="font-size:28px;margin-bottom:12px">⚠️</div>'
+      +'<div style="color:var(--red)">โหลดข้อมูลไม่สำเร็จ<br><small>'+e.message+'</small></div>';
+  });
+</script>
+</body>
+</html>
