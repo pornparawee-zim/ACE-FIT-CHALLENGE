@@ -409,19 +409,6 @@ function renderCheckin(){
     card.appendChild(hdr);
 
     /* members */
-    /* show locked banner for non-admin viewing past/future weeks */
-    var activeWk = currentActiveWeek();
-    if(!isAdmin && week !== activeWk){
-      var banner = document.createElement('div');
-      banner.className = 'status-bar neutral';
-      banner.style.marginBottom = '10px';
-      var isPast = week < activeWk;
-      banner.innerHTML = isPast
-        ? '<i class="ti ti-lock"></i> สัปดาห์นี้ปิดแล้ว — ดูได้อย่างเดียว'
-        : '<i class="ti ti-clock"></i> ยังไม่ถึงสัปดาห์นี้';
-      card.appendChild(banner);
-    }
-
     var mlist = document.createElement('div');
     mlist.className = 'members-list';
 
@@ -463,14 +450,15 @@ function renderCheckin(){
             var curPts = memberPts(week, tid, mn);
             var curOn  = isChecked(week, tid, mn, dayIdx);
 
-            /* non-admin can only check-in current active week */
-            if(!isAdmin && week !== activeWk) return;
-
+            if(!isAdmin && week !== activeWk){
+              /* show week-locked modal */
+              openWeekLockedModal(week, activeWk);
+              return;
+            }
             if(!curOn && curPts < 4){
               openConfirmModal(week, tid, mn, dayIdx);
               return;
             }
-            /* only admin can uncheck */
             if(curOn && isAdmin){
               setChecked(week, tid, mn, dayIdx, false);
               renderCheckin();
@@ -584,16 +572,9 @@ function refresh(){
   renderBoard();
 }
 document.getElementById('btnPrev').addEventListener('click', function(){
-  if(!isAdmin){
-    /* non-admin: allow viewing past weeks but not future */
-    if(week>1){ week--; refresh(); }
-  } else {
-    if(week>1){ week--; refresh(); }
-  }
+  if(week>1){ week--; refresh(); }
 });
 document.getElementById('btnNext').addEventListener('click', function(){
-  var activeWk = currentActiveWeek();
-  if(!isAdmin && week >= activeWk) return; /* non-admin can't go to future weeks */
   if(week<TOTAL_WEEKS){ week++; refresh(); }
 });
 
@@ -660,24 +641,50 @@ function openSuccessModal(mn, teamName, dayIdx){
 function closeSuccessModal(){
   document.getElementById('successOverlay').classList.remove('open');
 }
-document.getElementById('successOverlay').addEventListener('click', function(e){
-  if(e.target === document.getElementById('successOverlay')) closeSuccessModal();
-});
-document.getElementById('btnSuccessOk').addEventListener('click', function(e){
-  e.stopPropagation();
-  closeSuccessModal();
-});
-document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
-document.getElementById('confirmOverlay').addEventListener('click', function(e){
-  if(e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
-});
-document.getElementById('btnConfirmOk').addEventListener('click', function(){
-  if(!pendingCheckin) return;
-  var p = pendingCheckin;
-  var teamName = TEAMS.filter(function(t){return t.id===p.tid;})[0].name;
-  setChecked(p.w, p.tid, p.mn, p.dayIdx, true);
-  closeConfirmModal();
-  setTimeout(function(){ openSuccessModal(p.mn, teamName, p.dayIdx); }, 150);
+/* ── modal listeners — deferred until DOM ready ── */
+function openWeekLockedModal(viewingWeek, activeWeek){
+  var overlay = document.getElementById('weekLockedOverlay');
+  var emoji   = document.getElementById('weekLockedEmoji');
+  var title   = document.getElementById('weekLockedTitle');
+  var desc    = document.getElementById('weekLockedDesc');
+  if(viewingWeek < activeWeek){
+    emoji.textContent = '🔒';
+    title.textContent = 'สัปดาห์นี้ปิดแล้ว';
+    desc.textContent  = 'สัปดาห์ที่ '+viewingWeek+' สิ้นสุดแล้ว ไม่สามารถเช็คอินย้อนหลังได้ครับ';
+  } else {
+    emoji.textContent = '⏳';
+    title.textContent = 'ยังไม่ถึงสัปดาห์นี้';
+    desc.textContent  = 'สัปดาห์ที่ '+viewingWeek+' ยังมาไม่ถึง สามารถเช็คอินได้เฉพาะสัปดาห์ที่ '+activeWeek+' เท่านั้นครับ';
+  }
+  overlay.classList.add('open');
+}
+function closeWeekLockedModal(){
+  document.getElementById('weekLockedOverlay').classList.remove('open');
+}
+
+window.addEventListener('load', function(){
+  document.getElementById('weekLockedOverlay').addEventListener('click', function(e){
+    if(e.target === document.getElementById('weekLockedOverlay')) closeWeekLockedModal();
+  });
+  document.getElementById('btnWeekLockedOk').addEventListener('click', closeWeekLockedModal);
+  document.getElementById('successOverlay').addEventListener('click', function(e){
+    if(e.target === document.getElementById('successOverlay')) closeSuccessModal();
+  });
+  document.getElementById('btnSuccessOk').addEventListener('click', function(e){
+    e.stopPropagation(); closeSuccessModal();
+  });
+  document.getElementById('btnConfirmCancel').addEventListener('click', closeConfirmModal);
+  document.getElementById('confirmOverlay').addEventListener('click', function(e){
+    if(e.target === document.getElementById('confirmOverlay')) closeConfirmModal();
+  });
+  document.getElementById('btnConfirmOk').addEventListener('click', function(){
+    if(!pendingCheckin) return;
+    var p = pendingCheckin;
+    var teamName = TEAMS.filter(function(t){return t.id===p.tid;})[0].name;
+    setChecked(p.w, p.tid, p.mn, p.dayIdx, true);
+    closeConfirmModal();
+    setTimeout(function(){ openSuccessModal(p.mn, teamName, p.dayIdx); }, 150);
+  });
 });
 
 /* ── init ── */
@@ -717,6 +724,17 @@ document.getElementById('btnConfirmOk').addEventListener('click', function(){
     <button class="btn-ok" id="btnSuccessOk" style="background:var(--green);border-color:var(--green);width:100%;padding:13px;font-size:14px">
       ✨ ขอบคุณ เดี๋ยวบอกเพื่อนเลย!
     </button>
+  </div>
+</div>
+
+<!-- Week Locked Modal -->
+<div id="weekLockedOverlay" class="modal-overlay">
+  <div class="modal" onclick="event.stopPropagation()" style="text-align:center">
+    <div class="modal-handle"></div>
+    <div style="font-size:48px;margin-bottom:12px" id="weekLockedEmoji">🔒</div>
+    <div class="modal-title" style="text-align:center" id="weekLockedTitle"></div>
+    <div style="font-size:13px;color:var(--text2);line-height:1.7;margin:10px 0 20px" id="weekLockedDesc"></div>
+    <button class="btn-ok" id="btnWeekLockedOk" style="width:100%;padding:13px">รับทราบ</button>
   </div>
 </div>
 
