@@ -73,7 +73,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .team-score-label{font-size:10px;color:var(--text3);text-align:right;margin-top:1px}
 
 .members-list{display:flex;flex-direction:column;gap:8px}
-@media(min-width:400px){.members-list{display:grid;grid-template-columns:repeat(3,1fr)}}
+@media(min-width:400px){.members-list{display:grid;grid-template-columns:repeat(2,1fr)}}
 .member-card{background:var(--surface2);border-radius:var(--r);padding:10px}
 .member-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 @media(min-width:400px){.member-top{flex-direction:column;align-items:flex-start;gap:4px}}
@@ -227,10 +227,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 <script>
 var TEAMS = [
-  { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy'] },
-  { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay'] },
-  { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw'] },
-  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan'] }
+  { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy','Prem'] },
+  { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay','Tee'] },
+  { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw','Ohm'] },
+  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim'] }
 ];
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
