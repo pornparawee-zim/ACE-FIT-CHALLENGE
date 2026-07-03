@@ -227,11 +227,17 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 <script>
 var TEAMS = [
-  { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy','Prem'] },
-  { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay','Tee'] },
-  { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw','Ohm'] },
-  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim'] }
+  { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy','Prem'], newMember:'Prem' },
+  { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay','Tee'], newMember:'Tee' },
+  { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw','Ohm'], newMember:'Ohm' },
+  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim'], newMember:'Kim' }
 ];
+/* W1 = 3 คนเดิม, W2+ = ทั้ง 4 คน */
+function activeMembers(team, w){
+  return (w === 1)
+    ? team.members.filter(function(m){ return m !== team.newMember; })
+    : team.members;
+}
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
 var TOTAL_WEEKS = 12;
@@ -329,12 +335,13 @@ function isWeekFinished(w){
 }
 function teamWeekPts(w,tid){
   var team = TEAMS.filter(function(t){return t.id===tid;})[0];
+  var mems = activeMembers(team, w); /* W1=3คน, W2+=4คน */
   var base = 0;
-  team.members.forEach(function(m){ base += memberPts(w,tid,m); });
+  mems.forEach(function(m){ base += memberPts(w,tid,m); });
   /* bonus/penalty only triggers after week ends (Sunday 23:59) */
   if(base > 0 && isWeekFinished(w)){
-    var allThree = team.members.every(function(m){ return memberPts(w,tid,m)>=3; });
-    var anyZero  = team.members.some(function(m){  return memberPts(w,tid,m)===0; });
+    var allThree = mems.every(function(m){ return memberPts(w,tid,m)>=3; });
+    var anyZero  = mems.some(function(m){  return memberPts(w,tid,m)===0; });
     if(allThree) base += 2;
     if(anyZero)  base = Math.max(0, base-1);
   }
@@ -347,10 +354,11 @@ function teamTotalPts(tid){
 }
 function bonusState(w,tid){
   var team = TEAMS.filter(function(t){return t.id===tid;})[0];
+  var mems = activeMembers(team, w); /* W1=3คน, W2+=4คน */
   var finished = isWeekFinished(w);
-  var anyZero  = team.members.some(function(m){return memberPts(w,tid,m)===0;});
-  var allThree = team.members.every(function(m){return memberPts(w,tid,m)>=3;});
-  var hasAny   = team.members.some(function(m){return memberPts(w,tid,m)>0;});
+  var anyZero  = mems.some(function(m){return memberPts(w,tid,m)===0;});
+  var allThree = mems.every(function(m){return memberPts(w,tid,m)>=3;});
+  var hasAny   = mems.some(function(m){return memberPts(w,tid,m)>0;});
   if(!hasAny) return 'neutral'; /* no activity yet */
   if(finished && anyZero)  return 'penalty';
   if(finished && allThree) return 'bonus';
@@ -412,7 +420,9 @@ function renderCheckin(){
     var mlist = document.createElement('div');
     mlist.className = 'members-list';
 
-    team.members.forEach(function(memberName){
+    var displayMembers = team.members; /* แสดงทุกคน แต่สมาชิกใหม่ใน W1 จะถูก lock */
+    displayMembers.forEach(function(memberName){
+      var isNewMemberW1 = (week === 1 && memberName === team.newMember);
       var pts    = memberPts(week, team.id, memberName);
       var isFull = pts >= 4;
 
@@ -421,8 +431,9 @@ function renderCheckin(){
 
       var mtop = document.createElement('div');
       mtop.className = 'member-top';
-      mtop.innerHTML = '<div class="member-name">'+memberName+'</div>'
-        +'<div class="pts-badge'+(isFull?' full':'')+'">'+pts+'/4</div>';
+      var nameLabel = memberName + (isNewMemberW1 ? ' <span style="font-size:9px;background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:1px 6px;color:var(--text3);vertical-align:middle">เริ่ม W2</span>' : '');
+      mtop.innerHTML = '<div class="member-name">'+nameLabel+'</div>'
+        +'<div class="pts-badge'+(isNewMemberW1?' ':isFull?' full':'')+'">'+( isNewMemberW1?'—':pts+'/4')+'</div>';
       mc.appendChild(mtop);
 
       var dotsRow = document.createElement('div');
@@ -436,11 +447,12 @@ function renderCheckin(){
 
           var activeWk = currentActiveWeek();
           var isLocked = !isAdmin && week !== activeWk;
+          var isNewW1  = (week === 1 && mn === team.newMember);
           var dot = document.createElement('div');
           var cls = 'dot';
-          if(on)                    cls += ' active';
-          if(!blocked && !isLocked) cls += ' tappable';
-          if(blocked || isLocked)   cls += ' capped';
+          if(on)                              cls += ' active';
+          if(!blocked && !isLocked && !isNewW1) cls += ' tappable';
+          if(blocked || isLocked || isNewW1)  cls += ' capped';
           dot.className   = cls;
           dot.title       = DAY_FULL[dayIdx];
           dot.textContent = DAYS[dayIdx];
