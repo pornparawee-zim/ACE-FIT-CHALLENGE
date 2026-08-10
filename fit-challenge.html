@@ -189,7 +189,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
   <div id="sec-checkin" class="section active">
     <div id="loadingState" style="text-align:center;padding:3rem 1rem;color:var(--text2);font-size:14px">
       <div style="font-size:28px;margin-bottom:12px">⏳</div>
-      กำลังโหลดข้อมูล....
+      กำลังโหลดข้อมูล...
     </div>
   </div>
   <div id="sec-board" class="section"></div>
@@ -230,13 +230,26 @@ var TEAMS = [
   { id:'alpha',   name:'Alpha',   badge:'badge-alpha',   color:'#1A5FA8', members:['Wick','Art','Toy','Prem'], newMember:'Prem' },
   { id:'bravo',   name:'Bravo',   badge:'badge-bravo',   color:'#1A7A52', members:['Griang','Min','Muay','Tee'], newMember:'Tee' },
   { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw','Ohm'], newMember:'Ohm' },
-  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim'], newMember:'Kim' }
+  { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim','Zom'], newMember:'Kim', leavingMember:'Top', leaveWeek:8 }
 ];
-/* W1 = 3 คนเดิม, W2+ = ทั้ง 4 คน */
+/* คืนสมาชิกที่นับจริงในสัปดาห์นั้น
+   - newMember    : ไม่นับ W1
+   - leavingMember: นับถึง leaveWeek-1, สมาชิกคนสุดท้ายใน members (Zom) นับตั้งแต่ leaveWeek
+*/
 function activeMembers(team, w){
-  return (w === 1)
-    ? team.members.filter(function(m){ return m !== team.newMember; })
-    : team.members;
+  var mems = team.members.slice();
+  if(team.newMember && w === 1){
+    mems = mems.filter(function(m){ return m !== team.newMember; });
+  }
+  if(team.leavingMember){
+    var replacer = team.members[team.members.length - 1];
+    if(w < team.leaveWeek){
+      mems = mems.filter(function(m){ return m !== replacer; });
+    } else {
+      mems = mems.filter(function(m){ return m !== team.leavingMember; });
+    }
+  }
+  return mems;
 }
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
@@ -420,7 +433,7 @@ function renderCheckin(){
     var mlist = document.createElement('div');
     mlist.className = 'members-list';
 
-    var displayMembers = team.members; /* แสดงทุกคน แต่สมาชิกใหม่ใน W1 จะถูก lock */
+    var displayMembers = activeMembers(team, week); /* แสดงเฉพาะสมาชิกที่ active ในสัปดาห์นี้ */
     displayMembers.forEach(function(memberName){
       var isNewMemberW1 = (week === 1 && memberName === team.newMember);
       var pts    = memberPts(week, team.id, memberName);
@@ -521,7 +534,7 @@ function renderBoard(){
       +'<div class="lb-rank">'+(medals[i]||i+1)+'</div>'
       +'<div class="lb-body">'
         +'<div class="lb-name"><span class="team-badge '+item.t.badge+'">'+item.t.name+'</span>'+tagHtml+'</div>'
-        +'<div class="lb-members">'+item.t.members.join(', ')+'</div>'
+        +'<div class="lb-members">'+activeMembers(item.t, week).join(', ')+'</div>'
         +'<div class="lb-bar-wrap"><div class="lb-bar" style="width:'+pct+'%;background:'+item.t.color+'"></div></div>'
         +'<div class="lb-week">สัปดาห์นี้ '+item.wk+' แต้ม</div>'
       +'</div>'
