@@ -84,6 +84,12 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 .dot{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);font-size:10px;font-weight:500;color:var(--text3);display:flex;align-items:center;justify-content:center;user-select:none;flex-shrink:0;transition:background .12s,border-color .12s,transform .1s}
 @media(min-width:400px){.dot{width:30px;height:30px;font-size:9px}}
+.friend-row{margin-top:4px}
+.friend-label{font-size:10px;color:var(--text3);min-width:72px;display:flex;align-items:center;padding-right:4px}
+.friend-dot{width:22px;height:22px;border-radius:6px;border:1.5px dashed var(--border2);background:transparent;font-size:0}
+.friend-dot.active{background:var(--green);border-color:var(--green)}
+.friend-dot.active::after{content:'✓';font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center;height:100%}
+.friend-dot.tappable:hover{border-color:var(--green);background:#e6f4ea}
 .dot.active{background:var(--green);border-color:var(--green);color:#fff}
 .dot.tappable{cursor:pointer}
 .dot.tappable:active{transform:scale(.88)}
@@ -278,20 +284,24 @@ var SB_URL = 'https://xfitexjpxzbvijclgnfn.supabase.co';
 var SB_KEY = 'sb_publishable_eMIAJRc_7Nl4jemG6wq-nw__SoXKVAk';
 var sb = null; /* initialized after SDK loads */
 
-var checked = {}; /* local cache: "w-tid-m-d" → true */
+var checked = {};
+var friends = {}; /* local cache: "w-tid-m-d" → true */
 var pendingCheckin = null; /* { w, tid, m, d } waiting for confirm */
 
 function ckey(w,tid,m,d){ return w+'-'+tid+'-'+m+'-'+d; }
 function isChecked(w,tid,m,d){ return checked[ckey(w,tid,m,d)] === true; }
+function isFriend(w,tid,m,d){ return friends[ckey(w,tid,m,d)] === true; }
 
 /* load all rows from Supabase into local cache, then render */
 function loadAll(){
-  sb.from('checkins').select('week,team_id,member,day,checked')
+  sb.from('checkins').select('week,team_id,member,day,checked,friend')
     .then(function(res){
       if(res.error){ console.error(res.error); return; }
       checked = {};
+      friends = {};
       res.data.forEach(function(r){
         if(r.checked) checked[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
+        if(r.friend)  friends[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
       });
       renderCheckin();
       renderBoard();
@@ -308,7 +318,7 @@ function setChecked(w,tid,m,d,val){
   /* sync to Supabase */
   if(val){
     sb.from('checkins').upsert(
-      { week:w, team_id:tid, member:m, day:d, checked:true, updated_at: new Date().toISOString() },
+      { week:w, team_id:tid, member:m, day:d, checked:true, friend: friends[ckey(w,tid,m,d)]||false, updated_at: new Date().toISOString() },
       { onConflict: 'week,team_id,member,day' }
     ).then(function(res){ if(res.error) console.error('upsert error', res.error); });
   } else {
@@ -336,9 +346,27 @@ function startRealtime(){
 
 function memberPts(w,tid,m){
   var n=0;
-  for(var d=0;d<7;d++) if(isChecked(w,tid,m,d)) n++;
-  return n;
+  for(var d=0;d<7;d++){
+    if(isChecked(w,tid,m,d)){
+      n++;
+      if(isFriend(w,tid,m,d)) n++; /* +ชวนเพื่อน: +1 ในวันนั้น */
+    }
+  }
+  return Math.min(n, 4); /* cap 4 แต้ม/สัปดาห์ */
 }
+/* toggle friend bonus for one day */
+function setFriend(w,tid,m,d,val){
+  var k = ckey(w,tid,m,d);
+  if(val){ friends[k] = true; } else { delete friends[k]; }
+  sb.from('checkins')
+    .upsert(
+      { week:w, team_id:tid, member:m, day:d, checked:true, friend: val, updated_at: new Date().toISOString() },
+      { onConflict: 'week,team_id,member,day' }
+    ).then(function(res){ if(res.error) console.error('friend upsert error', res.error); });
+  renderCheckin();
+  renderBoard();
+}
+
 function isWeekFinished(w){
   /* week ends Sunday 23:59 — compare end-of-day Sunday vs now */
   var endOfWeek = new Date(START);
@@ -494,8 +522,39 @@ function renderCheckin(){
           dotsRow.appendChild(dot);
         })(team.id, memberName, di);
       }
-
       mc.appendChild(dotsRow);
+
+      /* แถว +ชวนเพื่อน */
+      var friendRow = document.createElement('div');
+      friendRow.className = 'day-dots friend-row';
+      var friendLabel = document.createElement('span');
+      friendLabel.className = 'friend-label';
+      friendLabel.textContent = '+ชวนเพื่อน';
+      friendRow.appendChild(friendLabel);
+      for(var fi=0; fi<7; fi++){
+        (function(ftid, fmn, dayIdx){
+          var checkedOn = isChecked(week, ftid, fmn, dayIdx);
+          var friendOn  = isFriend(week, ftid, fmn, dayIdx);
+          var activeWk  = currentActiveWeek();
+          var isLocked  = !isAdmin && week !== activeWk;
+          var isNewW1   = (week === 1 && fmn === team.newMember);
+          var fdot = document.createElement('div');
+          var fcls = 'dot friend-dot';
+          if(friendOn)                                fcls += ' active';
+          if(checkedOn && !isLocked && !isNewW1)      fcls += ' tappable';
+          if(!checkedOn || isLocked || isNewW1)       fcls += ' capped';
+          fdot.className = fcls;
+          fdot.title     = DAY_FULL[dayIdx] + ' +ชวนเพื่อน';
+          fdot.addEventListener('click', function(){
+            var aw = currentActiveWeek();
+            if(!isAdmin && week !== aw){ openWeekLockedModal(week, aw); return; }
+            if(!isChecked(week, ftid, fmn, dayIdx)) return;
+            setFriend(week, ftid, fmn, dayIdx, !isFriend(week, ftid, fmn, dayIdx));
+          });
+          friendRow.appendChild(fdot);
+        })(team.id, memberName, fi);
+      }
+      mc.appendChild(friendRow);
       mlist.appendChild(mc);
     });
 
