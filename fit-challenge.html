@@ -492,8 +492,9 @@ function renderCheckin(){
       for(var di=0; di<7; di++){
         /* capture loop vars in IIFE */
         (function(tid, mn, dayIdx){
-          var on      = isChecked(week, tid, mn, dayIdx);
-          var blocked = (!on && isFull);
+          var on       = isChecked(week, tid, mn, dayIdx);
+          var days     = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) d++; return d; })();
+          var blocked  = (!on && days >= 4); /* real-time ทุกครั้งที่ render */
 
           var activeWk = currentActiveWeek();
           var isLocked = !isAdmin && week !== activeWk;
