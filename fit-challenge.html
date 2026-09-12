@@ -467,7 +467,7 @@ function renderCheckin(){
       var isNewMemberW1 = (week === 1 && memberName === team.newMember);
       var pts    = memberPts(week, team.id, memberName);
       var isFull = (function(){
-        var days=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) days++;
+        var days=0; for(var dd=0;dd<7;dd++) if(isChecked(week,team.id,memberName,dd)) days++;
         return days >= 4;
       })();
 
