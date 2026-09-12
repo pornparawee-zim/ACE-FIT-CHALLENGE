@@ -201,7 +201,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
   <div id="sec-board" class="section"></div>
   <div id="sec-rules" class="section">
     <div class="stat-grid">
-      <div class="stat-box"><div class="stat-val">12</div><div class="stat-label">สัปดาห์</div></div>
+      <div class="stat-box"><div class="stat-val">13</div><div class="stat-label">สัปดาห์</div></div>
       <div class="stat-box"><div class="stat-val">4</div><div class="stat-label">วันสูงสุด/คน/สัปดาห์</div></div>
       <div class="stat-box"><div class="stat-val">+2</div><div class="stat-label">โบนัสทีม</div></div>
       <div class="stat-box"><div class="stat-val">5K</div><div class="stat-label">รางวัล (บาท)</div></div>
@@ -211,8 +211,9 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
       <div class="rule-item"><i class="ti ti-camera" style="color:var(--blue)"></i><span>ถ่ายรูปส่งเข้ากลุ่ม Telegram ทุกครั้งที่ออกกำลังกาย แล้วมาติ๊กในชีทนี้</span></div>
       <div class="rule-item"><i class="ti ti-users" style="color:var(--green)"></i><span>คะแนนสะสมเป็นทีม ทีมละ 4 คน ช่วยกันเก็บ!</span></div>
       <div class="rule-item"><i class="ti ti-sparkles" style="color:var(--amber)"></i><span><strong>โบนัส +2 แต้ม</strong> ถ้าทุกคนในทีมได้คนละ 3 แต้มขึ้นไปในสัปดาห์นั้น</span></div>
+      <div class="rule-item"><i class="ti ti-user-plus" style="color:var(--green)"></i><span><strong>+ชวนเพื่อน +1 แต้ม</strong> ถ้าพาเพื่อนหรือครอบครัวไปออกกำลังกายด้วย ได้ +1 แต้มในวันนั้น (สูงสุด 1 ครั้ง/คน/วัน)</span></div>
       <div class="rule-item"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i><span><strong>Penalty -1 แต้ม</strong> ถ้ามีสมาชิกคนใดไม่ออกกำลังกายเลยในสัปดาห์นั้น</span></div>
-      <div class="rule-item"><i class="ti ti-calendar-event" style="color:var(--blue)"></i><span>สรุปคะแนนทุก <strong>วันจันทร์</strong> · ประกาศผล <strong>11 ก.ย. 2569</strong></span></div>
+      <div class="rule-item"><i class="ti ti-calendar-event" style="color:var(--blue)"></i><span>สรุปคะแนนทุก <strong>วันจันทร์</strong> · ประกาศผล <strong>18 ก.ย. 2569</strong></span></div>
     </div>
   </div>
 </div>
@@ -259,7 +260,7 @@ function activeMembers(team, w){
 }
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
-var TOTAL_WEEKS = 12;
+var TOTAL_WEEKS = 13;
 var START = new Date(2026,5,22);
 var ADMIN_PW = 'ACE2026';
 
@@ -267,13 +268,13 @@ var ADMIN_PW = 'ACE2026';
 function currentActiveWeek(){
   var now = new Date();
   var s = new Date(2026, 5, 22); /* START inline to avoid hoisting issues */
-  for(var w = 1; w <= 12; w++){
+  for(var w = 1; w <= TOTAL_WEEKS; w++){
     var end = new Date(s);
     end.setDate(end.getDate() + (w-1)*7 + 6);
     end.setHours(23, 59, 59, 999);
     if(now <= end) return w;
   }
-  return 12;
+  return TOTAL_WEEKS;
 }
 
 var week = 1;
@@ -465,7 +466,10 @@ function renderCheckin(){
     displayMembers.forEach(function(memberName){
       var isNewMemberW1 = (week === 1 && memberName === team.newMember);
       var pts    = memberPts(week, team.id, memberName);
-      var isFull = pts >= 4;
+      var isFull = (function(){
+        var days=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) days++;
+        return days >= 4;
+      })();
 
       var mc = document.createElement('div');
       mc.className = 'member-card';
@@ -668,7 +672,7 @@ document.getElementById('adminBtn').addEventListener('click', function(){
 });
 document.getElementById('adminResetBtn').addEventListener('click', function(){
   if(!isAdmin) return;
-  if(confirm('ล้างข้อมูลเช็คอินทั้งหมด 12 สัปดาห์ใช่ไหม? ไม่สามารถย้อนกลับได้')){
+  if(confirm('ล้างข้อมูลเช็คอินทั้งหมด 13 สัปดาห์ใช่ไหม? ไม่สามารถย้อนกลับได้')){
     sb.from('checkins').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       .then(function(res){
         if(res.error){ alert('เกิดข้อผิดพลาด: '+res.error.message); return; }
