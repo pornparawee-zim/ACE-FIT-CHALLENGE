@@ -353,7 +353,7 @@ function memberPts(w,tid,m){
       if(isFriend(w,tid,m,d)) n++; /* +ชวนเพื่อน: +1 ในวันนั้น */
     }
   }
-  return Math.min(n, 4); /* cap 4 แต้ม/สัปดาห์ */
+  return n; /* ไม่ cap — เช็คอิน 4 วัน + ชวนเพื่อน 4 วัน = 8 แต้มได้ */
 }
 /* toggle friend bonus for one day */
 function setFriend(w,tid,m,d,val){
@@ -375,15 +375,20 @@ function isWeekFinished(w){
   endOfWeek.setHours(23,59,59,999);
   return new Date() > endOfWeek;
 }
+function checkinDays(w,tid,m){
+  /* นับวันเช็คอินจริง ไม่นับ friend bonus — ใช้สำหรับ BONUS/PENALTY threshold */
+  var n=0; for(var d=0;d<7;d++) if(isChecked(w,tid,m,d)) n++;
+  return n;
+}
 function teamWeekPts(w,tid){
   var team = TEAMS.filter(function(t){return t.id===tid;})[0];
   var mems = activeMembers(team, w); /* W1=3คน, W2+=4คน */
   var base = 0;
   mems.forEach(function(m){ base += memberPts(w,tid,m); });
-  /* bonus/penalty only triggers after week ends (Sunday 23:59) */
+  /* bonus/penalty ดูจากวันเช็คอินจริง ไม่รวม friend bonus */
   if(base > 0 && isWeekFinished(w)){
-    var allThree = mems.every(function(m){ return memberPts(w,tid,m)>=3; });
-    var anyZero  = mems.some(function(m){  return memberPts(w,tid,m)===0; });
+    var allThree = mems.every(function(m){ return checkinDays(w,tid,m)>=3; });
+    var anyZero  = mems.some(function(m){  return checkinDays(w,tid,m)===0; });
     if(allThree) base += 2;
     if(anyZero)  base = Math.max(0, base-1);
   }
@@ -398,9 +403,9 @@ function bonusState(w,tid){
   var team = TEAMS.filter(function(t){return t.id===tid;})[0];
   var mems = activeMembers(team, w); /* W1=3คน, W2+=4คน */
   var finished = isWeekFinished(w);
-  var anyZero  = mems.some(function(m){return memberPts(w,tid,m)===0;});
-  var allThree = mems.every(function(m){return memberPts(w,tid,m)>=3;});
-  var hasAny   = mems.some(function(m){return memberPts(w,tid,m)>0;});
+  var anyZero  = mems.some(function(m){return checkinDays(w,tid,m)===0;});
+  var allThree = mems.every(function(m){return checkinDays(w,tid,m)>=3;});
+  var hasAny   = mems.some(function(m){return checkinDays(w,tid,m)>0;});
   if(!hasAny) return 'neutral'; /* no activity yet */
   if(finished && anyZero)  return 'penalty';
   if(finished && allThree) return 'bonus';
@@ -465,7 +470,7 @@ function renderCheckin(){
     var displayMembers = activeMembers(team, week); /* แสดงเฉพาะสมาชิกที่ active ในสัปดาห์นี้ */
     displayMembers.forEach(function(memberName){
       var isNewMemberW1 = (week === 1 && memberName === team.newMember);
-      var pts    = memberPts(week, team.id, memberName);
+      var pts    = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,team.id,memberName,dd)) d++; return d; })(); /* วันเช็คอินจริง ไม่รวม friend bonus */
       var isFull = (function(){
         var days=0; for(var dd=0;dd<7;dd++) if(isChecked(week,team.id,memberName,dd)) days++;
         return days >= 4;
@@ -504,7 +509,7 @@ function renderCheckin(){
 
           dot.addEventListener('click', function(){
             var activeWk = currentActiveWeek();
-            var curPts = memberPts(week, tid, mn);
+            var curDays = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) d++; return d; })();
             var curOn  = isChecked(week, tid, mn, dayIdx);
 
             if(!isAdmin && week !== activeWk){
@@ -512,7 +517,7 @@ function renderCheckin(){
               openWeekLockedModal(week, activeWk);
               return;
             }
-            if(!curOn && curPts < 4){
+            if(!curOn && curDays < 4){
               openConfirmModal(week, tid, mn, dayIdx);
               return;
             }
