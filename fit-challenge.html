@@ -478,7 +478,7 @@ function renderCheckin(){
       mtop.className = 'member-top';
       var nameLabel = memberName + (isNewMemberW1 ? ' <span style="font-size:9px;background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:1px 6px;color:var(--text3);vertical-align:middle">เริ่ม W2</span>' : '');
       mtop.innerHTML = '<div class="member-name">'+nameLabel+'</div>'
-        +'<div class="pts-badge'+(isNewMemberW1?' ':isFull?' full':'')+'">'+( isNewMemberW1?'—':pts+'/4')+'</div>';
+        +'<div class="pts-badge'+(isNewMemberW1?' ':isFull?' full':'')+'">'+( isNewMemberW1?'—':(function(){var d=0;for(var dd=0;dd<7;dd++)if(isChecked(week,team.id,memberName,dd))d++;return d;})()+'/4')+'</div>';
       mc.appendChild(mtop);
 
       var dotsRow = document.createElement('div');
