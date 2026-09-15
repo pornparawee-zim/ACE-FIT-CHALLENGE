@@ -190,6 +190,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
     <button class="tab active" data-tab="checkin"><i class="ti ti-checkbox"></i>เช็คอิน</button>
     <button class="tab" data-tab="board"><i class="ti ti-chart-bar"></i>คะแนน</button>
     <button class="tab" data-tab="rules"><i class="ti ti-info-circle"></i>กติกา</button>
+    <button class="tab" data-tab="raw"><i class="ti ti-table"></i>คะแนนดิบ</button>
   </div>
 
   <div id="sec-checkin" class="section active">
@@ -199,6 +200,8 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
     </div>
   </div>
   <div id="sec-board" class="section"></div>
+  <div id="sec-raw" class="section"></div>
+
   <div id="sec-rules" class="section">
     <div class="stat-grid">
       <div class="stat-box"><div class="stat-val">13</div><div class="stat-label">สัปดาห์</div></div>
@@ -366,6 +369,7 @@ function setFriend(w,tid,m,d,val){
     ).then(function(res){ if(res.error) console.error('friend upsert error', res.error); });
   renderCheckin();
   renderBoard();
+  renderRaw();
 }
 
 function isWeekFinished(w){
@@ -581,6 +585,98 @@ function renderCheckin(){
 }
 
 /* ── render board ── */
+function rawCheckinDays(w,tid,m){
+  /* วันเช็คอินจริงเท่านั้น ไม่รวม friend bonus */
+  var n=0; for(var d=0;d<7;d++) if(isChecked(w,tid,m,d)) n++;
+  return n;
+}
+
+var rawSortAsc = false; /* false = สูง→ต่ำ, true = ต่ำ→สูง */
+
+function renderRaw(){
+  var el = document.getElementById('sec-raw');
+  if(!el) return;
+
+  /* รวบรวมข้อมูลทุกคนทุกทีมเป็น flat list */
+  var rows = [];
+  TEAMS.forEach(function(team){
+    team.members.forEach(function(m){
+      var rowTotal = 0;
+      var weeks = [];
+      for(var w=1;w<=TOTAL_WEEKS;w++){
+        var mems = activeMembers(team, w);
+        var active = mems.indexOf(m) >= 0;
+        var pts = active ? rawCheckinDays(w, team.id, m) : null;
+        if(pts !== null) rowTotal += pts;
+        weeks.push({ pts: pts, active: active });
+      }
+      rows.push({ name: m, team: team, total: rowTotal, weeks: weeks, isNew: (m === team.newMember) });
+    });
+  });
+
+  /* sort */
+  rows.sort(function(a,b){ return rawSortAsc ? a.total - b.total : b.total - a.total; });
+
+  var sortLabel = rawSortAsc ? '↑ ต่ำ→สูง' : '↓ สูง→ต่ำ';
+  var html = '<div style="padding:16px 16px 8px;display:flex;justify-content:space-between;align-items:center">'
+    +'<div style="font-size:13px;color:var(--text2)">คะแนนดิบ = วันออกกำลังกายจริง ไม่รวมโบนัสและคะแนนชวนเพื่อน</div>'
+    +'<button onclick="rawSortAsc=!rawSortAsc;renderRaw()" style="font-size:12px;padding:5px 12px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">'+sortLabel+'</button>'
+    +'</div>';
+
+  /* single table ทุกคน */
+  html += '<div style="margin:0 12px 20px;border-radius:14px;overflow:hidden;border:1px solid var(--border)">';
+  html += '<table style="width:100%;border-collapse:collapse;font-size:11px;table-layout:fixed">';
+
+  /* คำนวณ width: ชื่อ=15%, ทีม=10%, W cols=(70/TOTAL_WEEKS)%, รวม=8% */
+  var wColPct = (67 / TOTAL_WEEKS).toFixed(1);
+  html += '<colgroup>'
+    +'<col style="width:13%">'   /* ชื่อ */
+    +'<col style="width:10%">'   /* ทีม */;
+  for(var w=1;w<=TOTAL_WEEKS;w++) html += '<col style="width:'+wColPct+'%">';
+  html += '<col style="width:9%"></colgroup>'; /* รวม */
+
+  html += '<thead><tr style="background:var(--surface)">'
+    +'<th style="padding:6px 8px;text-align:left;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border)">ชื่อ</th>'
+    +'<th style="padding:6px 4px;text-align:left;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border)">ทีม</th>';
+  for(var w=1;w<=TOTAL_WEEKS;w++){
+    html += '<th style="padding:6px 2px;text-align:center;font-weight:500;color:var(--text2);border-bottom:1px solid var(--border)">'+w+'</th>';
+  }
+  html += '<th style="padding:6px 4px;text-align:center;font-weight:600;color:var(--text);border-bottom:1px solid var(--border);cursor:pointer" onclick="rawSortAsc=!rawSortAsc;renderRaw()">รวม</th>'
+    +'</tr></thead><tbody>';
+
+  rows.forEach(function(r){
+    html += '<tr style="border-bottom:1px solid var(--border)">'
+      +'<td style="padding:6px 8px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
+      +(r.isNew ? '<span style="font-size:9px;background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:1px 4px;margin-right:2px;color:var(--text3)">W2+</span>' : '')
+      +r.name+'</td>'
+      +'<td style="padding:6px 4px">'
+      +'<span style="font-size:10px;padding:1px 6px;border-radius:100px;background:'+r.team.color+'22;color:'+r.team.color+';font-weight:500;white-space:nowrap">'+r.team.name+'</span>'
+      +'</td>';
+
+    r.weeks.forEach(function(wk){
+      var bg='', txt='';
+      if(!wk.active){
+        bg='background:var(--surface);'; txt='<span style="color:var(--text3)">—</span>';
+      } else if(wk.pts===4){
+        bg='background:var(--green-light,#e8f5e0);'; txt='<span style="color:var(--green);font-weight:700">4</span>';
+      } else if(wk.pts===0){
+        bg='background:var(--surface);'; txt='<span style="color:var(--text3)">0</span>';
+      } else {
+        txt='<span style="color:var(--text)">'+wk.pts+'</span>';
+      }
+      html += '<td style="padding:5px 2px;text-align:center;'+bg+'">'+txt+'</td>';
+    });
+
+    html += '<td style="padding:6px 4px;text-align:center;font-weight:700;font-size:13px;color:'+r.team.color+'">'+r.total+'</td>';
+    html += '</tr>';
+  });
+
+  html += '</tbody></table></div>';
+
+  el.innerHTML = html;
+}
+
+
 function renderBoard(){
   var sorted = TEAMS.map(function(t){
     return { t:t, total:teamTotalPts(t.id), wk:teamWeekPts(week,t.id) };
@@ -650,6 +746,7 @@ document.querySelectorAll('.tab').forEach(function(btn){
     btn.classList.add('active');
     document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('sec-'+id).classList.add('active');
+    if(id === 'raw') renderRaw();
     if(id==='board') renderBoard();
   });
 });
@@ -664,6 +761,7 @@ function refresh(){
   })(week);
   renderCheckin();
   renderBoard();
+  renderRaw();
 }
 document.getElementById('btnPrev').addEventListener('click', function(){
   if(week>1){ week--; refresh(); }
