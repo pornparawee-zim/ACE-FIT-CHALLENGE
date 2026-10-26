@@ -651,37 +651,6 @@ function renderCheckin(){
 
 
 
-      /* แถว +กีฬาโบนัส */
-      if(weekSport[week]){
-        var sportRow = document.createElement('div');
-        sportRow.className = 'day-dots friend-row';
-        var sportLabel = document.createElement('span');
-        sportLabel.className = 'friend-label';
-        sportLabel.style.color = 'var(--amber,#C8860A)';
-        sportLabel.textContent = '⚡กีฬาโบนัส';
-        sportRow.appendChild(sportLabel);
-        for(var si=0; si<7; si++){
-          (function(ftid,fmn,dayIdx){
-            var checkedOn = isChecked(week,ftid,fmn,dayIdx);
-            var sportOn   = isSport(week,ftid,fmn,dayIdx);
-            var activeWk  = currentActiveWeek();
-            var isLocked  = !isAdmin && week !== activeWk;
-            var sdot = document.createElement('div');
-            var scls = 'dot friend-dot sport-dot';
-            if(sportOn)                    scls += ' active';
-            if(checkedOn && !isLocked)     scls += ' tappable';
-            if(!checkedOn || isLocked)     scls += ' capped';
-            sdot.className = scls;
-            sdot.title = DAY_FULL[dayIdx]+' +กีฬาโบนัส +2';
-            sdot.addEventListener('click', function(){
-              var aw = currentActiveWeek();
-              if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
-              if(!isChecked(week,ftid,fmn,dayIdx)) return;
-              setSport(week,ftid,fmn,dayIdx,!isSport(week,ftid,fmn,dayIdx));
-            });
-       us:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
-      sportBanner.innerHTML = sportInfo + sportAdminBtn;
-      card.appendChild(sportBanner);
     }
     /* Legend */
     if(weekSport[week]){
