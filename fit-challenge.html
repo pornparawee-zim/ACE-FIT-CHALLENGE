@@ -272,13 +272,13 @@ function activeMembers(team, w){
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
 var TOTAL_WEEKS = 12;
-var START = new Date(2026,5,22);
+var START = new Date(2026,9,26); /* รอบ 2: เริ่ม 26 ต.ค. 2569 */
 var ADMIN_PW = 'ACE2026';
 
 /* ── week helpers ── */
 function currentActiveWeek(){
   var now = new Date();
-  var s = new Date(2026, 5, 22); /* START inline to avoid hoisting issues */
+  var s = new Date(2026, 9, 26); /* START inline - รอบ 2 เริ่ม 26 ต.ค. 2569 */
   for(var w = 1; w <= TOTAL_WEEKS; w++){
     var end = new Date(s);
     end.setDate(end.getDate() + (w-1)*7 + 6);
@@ -649,9 +649,8 @@ function renderCheckin(){
       }
       mc.appendChild(dayGrid);
 
-
-
-    }
+      mlist.appendChild(mc);
+    }); /* end displayMembers.forEach */
     /* Legend */
     if(weekSport[week]){
       var legend = document.createElement('div');
