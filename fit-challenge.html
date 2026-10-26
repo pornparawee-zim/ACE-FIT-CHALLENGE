@@ -309,6 +309,7 @@ function loadAll(){
       });
       renderCheckin();
       renderBoard();
+      renderRaw();
     });
 }
 
@@ -369,7 +370,7 @@ function setFriend(w,tid,m,d,val){
     ).then(function(res){ if(res.error) console.error('friend upsert error', res.error); });
   renderCheckin();
   renderBoard();
-  renderRaw();
+  /* renderRaw ถูก call เฉพาะตอนกด tab หรือหลัง loadAll */
 }
 
 function isWeekFinished(w){
@@ -761,7 +762,7 @@ function refresh(){
   })(week);
   renderCheckin();
   renderBoard();
-  renderRaw();
+  /* renderRaw ถูก call เฉพาะตอนกด tab หรือหลัง loadAll */
 }
 document.getElementById('btnPrev').addEventListener('click', function(){
   if(week>1){ week--; refresh(); }
