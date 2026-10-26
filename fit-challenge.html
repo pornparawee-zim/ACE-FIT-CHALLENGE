@@ -89,19 +89,21 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .dot{width:100%;aspect-ratio:1;max-width:42px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);font-size:0;display:flex;align-items:center;justify-content:center;user-select:none;transition:background .12s,border-color .12s,transform .1s;cursor:default}
 
 /* Sub dots: friend & sport */
-.sub-dots{display:flex;gap:2px;height:18px;align-items:center;justify-content:center;width:100%}
-.sub-dot{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border2);background:transparent;font-size:0;transition:background .12s,border-color .12s,opacity .12s;flex-shrink:0}
+.sub-dots{display:flex;gap:3px;height:22px;align-items:center;justify-content:center;width:100%}
+.sub-dot{width:20px;height:20px;border-radius:6px;border:2px solid var(--border2);background:transparent;font-size:12px;display:flex;align-items:center;justify-content:center;transition:background .12s,border-color .12s,opacity .15s;flex-shrink:0;cursor:pointer}
 .sub-dot.hidden{opacity:0;pointer-events:none}
 /* friend sub-dot */
-.sub-dot.friend-dot{border-color:var(--green);border-style:dashed}
+.sub-dot.friend-dot{border-color:var(--green);border-style:dashed;color:var(--green)}
+.sub-dot.friend-dot::before{content:'👥';font-size:11px;opacity:.35}
 .sub-dot.friend-dot.active{background:var(--green);border-color:var(--green);border-style:solid}
-.sub-dot.friend-dot.active::after{content:'👥';font-size:8px;display:flex;align-items:center;justify-content:center;height:100%}
-.sub-dot.friend-dot.tappable:hover{background:#e6f4ea}
+.sub-dot.friend-dot.active::before{opacity:1}
+.sub-dot.friend-dot.tappable:hover{background:#e6f4ea;border-style:solid}
 /* sport sub-dot */
-.sub-dot.sport-dot{border-color:var(--amber,#C8860A);border-style:dashed}
+.sub-dot.sport-dot{border-color:var(--amber,#C8860A);border-style:dashed;color:var(--amber,#C8860A)}
+.sub-dot.sport-dot::before{content:'⚡';font-size:11px;opacity:.35}
 .sub-dot.sport-dot.active{background:var(--amber,#C8860A);border-color:var(--amber,#C8860A);border-style:solid}
-.sub-dot.sport-dot.active::after{content:'⚡';font-size:8px;display:flex;align-items:center;justify-content:center;height:100%}
-.sub-dot.sport-dot.tappable:hover{background:#FFF8E8}
+.sub-dot.sport-dot.active::before{opacity:1}
+.sub-dot.sport-dot.tappable:hover{background:#FFF8E8;border-style:solid}
 
 /* keep old names for compat */
 .day-dots{display:none}
