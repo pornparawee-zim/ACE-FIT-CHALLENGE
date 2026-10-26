@@ -170,7 +170,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 <body>
 <div class="app">
   <div class="topbar">
-    <div class="topbar-title">🏆 ACE FIT CHALLENGE</div>
+    <div class="topbar-title">🏆 ACE FIT CHALLENGE 2 !!!</div>
     <div class="week-pill">
       <button id="btnPrev" aria-label="ก่อนหน้า"><i class="ti ti-chevron-left"></i></button>
       <span class="week-label" id="weekLabel"></span>
@@ -207,7 +207,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
   <div id="sec-rules" class="section">
     <div class="stat-grid">
-      <div class="stat-box"><div class="stat-val">13</div><div class="stat-label">สัปดาห์</div></div>
+      <div class="stat-box"><div class="stat-val">12</div><div class="stat-label">สัปดาห์</div></div>
       <div class="stat-box"><div class="stat-val">4</div><div class="stat-label">วันสูงสุด/คน/สัปดาห์</div></div>
       <div class="stat-box"><div class="stat-val">+2</div><div class="stat-label">โบนัสทีม</div></div>
       <div class="stat-box"><div class="stat-val">5K</div><div class="stat-label">รางวัล (บาท)</div></div>
@@ -218,8 +218,11 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
       <div class="rule-item"><i class="ti ti-users" style="color:var(--green)"></i><span>คะแนนสะสมเป็นทีม ทีมละ 4 คน ช่วยกันเก็บ!</span></div>
       <div class="rule-item"><i class="ti ti-sparkles" style="color:var(--amber)"></i><span><strong>โบนัส +2 แต้ม</strong> ถ้าทุกคนในทีมได้คนละ 3 แต้มขึ้นไปในสัปดาห์นั้น</span></div>
       <div class="rule-item"><i class="ti ti-user-plus" style="color:var(--green)"></i><span><strong>+ชวนเพื่อน +1 แต้ม</strong> ถ้าพาเพื่อนหรือครอบครัวไปออกกำลังกายด้วย ได้ +1 แต้มในวันนั้น (สูงสุด 1 ครั้ง/คน/วัน)</span></div>
+      <div class="rule-item"><i class="ti ti-trophy" style="color:var(--amber)"></i><span><strong>⚡ กีฬาโบนัสประจำสัปดาห์ +2 แต้ม</strong> สุ่มกีฬาพิเศษทุกวันจันทร์ ถ้าออกกำลังกายด้วยกีฬานั้นได้ +2 แต้มพิเศษในวันนั้น</span></div>
       <div class="rule-item"><i class="ti ti-alert-triangle" style="color:var(--amber)"></i><span><strong>Penalty -1 แต้ม</strong> ถ้ามีสมาชิกคนใดไม่ออกกำลังกายเลยในสัปดาห์นั้น</span></div>
-      <div class="rule-item"><i class="ti ti-calendar-event" style="color:var(--blue)"></i><span>สรุปคะแนนทุก <strong>วันจันทร์</strong> · ประกาศผล <strong>18 ก.ย. 2569</strong></span></div>
+      <div class="rule-item"><i class="ti ti-pig-money" style="color:var(--red,#E05252)"></i><span><strong>บ๊วยประจำทีม ปรับ 10 บาท</strong> สมาชิกที่คะแนนต่ำสุดในทีมแต่ละสัปดาห์ ต้องปรับ 10 บาทลงกองกลางทีม พร้อมเซลฟี่ทำหน้ามีมประจำอาทิตย์</span></div>
+      <div class="rule-item"><i class="ti ti-pig-money" style="color:var(--red,#E05252)"></i><span><strong>ทีมอันดับสุดท้ายของสัปดาห์ ปรับคนละ 20 บาท</strong> ลงกองกลางทีม (ถ้าเสมอกัน ไม่มีใครโดนปรับ)</span></div>
+      <div class="rule-item"><i class="ti ti-calendar-event" style="color:var(--blue)"></i><span>สรุปคะแนนทุก <strong>วันจันทร์</strong> · ประกาศผล <strong>18 ม.ค. 2570</strong></span></div>
     </div>
   </div>
 </div>
@@ -266,7 +269,7 @@ function activeMembers(team, w){
 }
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
-var TOTAL_WEEKS = 13;
+var TOTAL_WEEKS = 12;
 var START = new Date(2026,5,22);
 var ADMIN_PW = 'ACE2026';
 
@@ -449,6 +452,25 @@ function teamWeekPts(w,tid){
   }
   return base;
 }
+function lastPlaceWeek(w){
+  /* คืน team id ที่คะแนนต่ำสุดสัปดาห์นั้น null ถ้าเสมอ */
+  var pts = TEAMS.map(function(t){ return { id:t.id, pts:teamWeekPts(w,t.id) }; });
+  pts.sort(function(a,b){ return a.pts-b.pts; });
+  if(pts[0].pts === pts[1].pts) return null; /* เสมอ = ไม่มีใครโดน */
+  return pts[0].id;
+}
+
+function bottomMember(w,tid){
+  /* คืน member ที่คะแนนส่วนตัวต่ำสุดในทีม สัปดาห์นั้น */
+  var team = TEAMS.filter(function(t){return t.id===tid;})[0];
+  var mems = activeMembers(team,w);
+  var scored = mems.map(function(m){ return { name:m, pts:memberPts(w,tid,m) }; });
+  scored.sort(function(a,b){ return a.pts-b.pts; });
+  /* ถ้าเสมอกัน return null */
+  if(scored.length>1 && scored[0].pts===scored[1].pts) return null;
+  return scored[0];
+}
+
 function teamTotalPts(tid){
   var s=0;
   for(var w=1;w<=TOTAL_WEEKS;w++) s+=teamWeekPts(w,tid);
@@ -677,6 +699,22 @@ function renderCheckin(){
     }
     card.appendChild(mlist);
 
+    /* บ๊วยประจำทีม */
+    if(isWeekFinished(week)){
+      var bm = bottomMember(week, team.id);
+      if(bm){
+        var buwayDiv = document.createElement('div');
+        buwayDiv.style.cssText = 'margin-top:8px;padding:8px 12px;border-radius:10px;background:#FFF0F0;border:1px solid #FFD0D0;font-size:12px;display:flex;align-items:center;gap:8px;';
+        buwayDiv.innerHTML = '<span style="font-size:16px">😅</span><span><strong>บ๊วยสัปดาห์นี้: '+bm.name+'</strong> ('+bm.pts+' แต้ม) — ปรับ 10 บาท + เซลฟี่มีม!</span>';
+        card.appendChild(buwayDiv);
+      } else {
+        var buwayDiv2 = document.createElement('div');
+        buwayDiv2.style.cssText = 'margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);font-size:12px;color:var(--text2);';
+        buwayDiv2.innerHTML = '😌 คะแนนส่วนตัวเสมอกัน — ไม่มีบ๊วยสัปดาห์นี้';
+        card.appendChild(buwayDiv2);
+      }
+    }
+
     /* status */
     var sb = document.createElement('div');
     sb.className = 'status-bar '+statusCls;
@@ -798,6 +836,8 @@ function renderBoard(){
     else if(bs==='bonus')          tagHtml = '<span class="lb-tag bonus-preview-tag">+2 กำลังจะได้</span>';
     else if(bs==='penalty')        tagHtml = '<span class="lb-tag penalty-tag">-1 Penalty</span>';
     else if(bs==='warning')        tagHtml = '<span class="lb-tag warning-tag">⚠ มีคนยังไม่เช็ค</span>';
+    /* ทีมสุดท้ายของสัปดาห์ */
+    if(weekDone && lastPlaceWeek(week)===item.t.id) tagHtml += '<span class="lb-tag" style="background:#FFE8E8;color:#C0392B">💸 ปรับ 20บ/คน</span>';
     lbHtml += '<div class="lb-row">'
       +'<div class="lb-rank">'+(medals[i]||i+1)+'</div>'
       +'<div class="lb-body">'
@@ -879,7 +919,7 @@ document.getElementById('adminBtn').addEventListener('click', function(){
 });
 document.getElementById('adminResetBtn').addEventListener('click', function(){
   if(!isAdmin) return;
-  if(confirm('ล้างข้อมูลเช็คอินทั้งหมด 13 สัปดาห์ใช่ไหม? ไม่สามารถย้อนกลับได้')){
+  if(confirm('ล้างข้อมูลเช็คอินทั้งหมด 12 สัปดาห์ใช่ไหม? ไม่สามารถย้อนกลับได้')){
     sb.from('checkins').delete().neq('id', '00000000-0000-0000-0000-000000000000')
       .then(function(res){
         if(res.error){ alert('เกิดข้อผิดพลาด: '+res.error.message); return; }
