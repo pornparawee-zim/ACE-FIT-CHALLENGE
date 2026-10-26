@@ -80,20 +80,37 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .member-name{font-size:13px;font-weight:600;color:var(--text)}
 .pts-badge{font-size:11px;font-weight:500;font-family:var(--mono);color:var(--text2);background:var(--surface);border:1px solid var(--border);border-radius:100px;padding:1px 7px}
 .pts-badge.full{background:var(--green-bg);color:var(--green);border-color:var(--green-bd)}
-.day-dots{display:flex;gap:5px;flex-wrap:wrap}
+/* Day Column Layout */
+.day-cols{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:8px}
+.day-col{display:flex;flex-direction:column;align-items:center;gap:3px}
+.day-col-label{font-size:10px;font-weight:500;color:var(--text3);height:16px;display:flex;align-items:center;justify-content:center}
 
-.dot{width:36px;height:36px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);font-size:10px;font-weight:500;color:var(--text3);display:flex;align-items:center;justify-content:center;user-select:none;flex-shrink:0;transition:background .12s,border-color .12s,transform .1s}
-@media(min-width:400px){.dot{width:30px;height:30px;font-size:9px}}
-.friend-row{margin-top:4px}
-.friend-label{font-size:10px;color:var(--text3);min-width:72px;display:flex;align-items:center;padding-right:4px}
-.friend-dot{width:22px;height:22px;border-radius:6px;border:1.5px dashed var(--border2);background:transparent;font-size:0}
-.friend-dot.active{background:var(--green);border-color:var(--green)}
-.friend-dot.active::after{content:'✓';font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center;height:100%}
-.friend-dot.tappable:hover{border-color:var(--green);background:#e6f4ea}
-.sport-dot{border-color:var(--amber,#C8860A)!important}
-.sport-dot.active{background:var(--amber,#C8860A)!important;border-color:var(--amber,#C8860A)!important}
-.sport-dot.tappable:hover{border-color:var(--amber,#C8860A)!important;background:#FFF8E8!important}
+/* Main checkin dot */
+.dot{width:100%;aspect-ratio:1;max-width:42px;border-radius:50%;background:var(--surface);border:1.5px solid var(--border);font-size:0;display:flex;align-items:center;justify-content:center;user-select:none;transition:background .12s,border-color .12s,transform .1s;cursor:default}
+
+/* Sub dots: friend & sport */
+.sub-dots{display:flex;gap:2px;height:18px;align-items:center;justify-content:center;width:100%}
+.sub-dot{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--border2);background:transparent;font-size:0;transition:background .12s,border-color .12s,opacity .12s;flex-shrink:0}
+.sub-dot.hidden{opacity:0;pointer-events:none}
+/* friend sub-dot */
+.sub-dot.friend-dot{border-color:var(--green);border-style:dashed}
+.sub-dot.friend-dot.active{background:var(--green);border-color:var(--green);border-style:solid}
+.sub-dot.friend-dot.active::after{content:'👥';font-size:8px;display:flex;align-items:center;justify-content:center;height:100%}
+.sub-dot.friend-dot.tappable:hover{background:#e6f4ea}
+/* sport sub-dot */
+.sub-dot.sport-dot{border-color:var(--amber,#C8860A);border-style:dashed}
+.sub-dot.sport-dot.active{background:var(--amber,#C8860A);border-color:var(--amber,#C8860A);border-style:solid}
+.sub-dot.sport-dot.active::after{content:'⚡';font-size:8px;display:flex;align-items:center;justify-content:center;height:100%}
+.sub-dot.sport-dot.tappable:hover{background:#FFF8E8}
+
+/* keep old names for compat */
+.day-dots{display:none}
+.friend-row{display:none}
 .dot.active{background:var(--green);border-color:var(--green);color:#fff}
+.dot.active::after{content:'✓';font-size:14px;font-weight:700;color:#fff}
+.dot.tappable{cursor:pointer}
+.dot.tappable:hover{border-color:var(--green);background:#e6f4ea;transform:scale(1.08)}
+.dot.capped{cursor:default;opacity:.35}
 .dot.tappable{cursor:pointer}
 .dot.tappable:active{transform:scale(.88)}
 .dot.capped{opacity:.25;cursor:not-allowed}
@@ -248,24 +265,9 @@ var TEAMS = [
   { id:'charlie', name:'Charlie', badge:'badge-charlie', color:'#8A5E0A', members:['Q','More','Meaw','Ohm'], newMember:'Ohm' },
   { id:'delta',   name:'Delta',   badge:'badge-delta',   color:'#7A1A52', members:['Pae','Top','Tan','Kim','Zom'], newMember:'Kim', leavingMember:'Top', leaveWeek:8 }
 ];
-/* คืนสมาชิกที่นับจริงในสัปดาห์นั้น
-   - newMember    : ไม่นับ W1
-   - leavingMember: นับถึง leaveWeek-1, สมาชิกคนสุดท้ายใน members (Zom) นับตั้งแต่ leaveWeek
-*/
+/* รอบ 2: ทุกคนเริ่มพร้อมกัน W1 ครบ 4 คน */
 function activeMembers(team, w){
-  var mems = team.members.slice();
-  if(team.newMember && w === 1){
-    mems = mems.filter(function(m){ return m !== team.newMember; });
-  }
-  if(team.leavingMember){
-    var replacer = team.members[team.members.length - 1];
-    if(w < team.leaveWeek){
-      mems = mems.filter(function(m){ return m !== replacer; });
-    } else {
-      mems = mems.filter(function(m){ return m !== team.leavingMember; });
-    }
-  }
-  return mems;
+  return team.members.slice();
 }
 var DAYS     = ['จ','อ','พ','พฤ','ศ','ส','อา'];
 var DAY_FULL = ['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์','เสาร์','อาทิตย์'];
@@ -544,9 +546,8 @@ function renderCheckin(){
     var mlist = document.createElement('div');
     mlist.className = 'members-list';
 
-    var displayMembers = activeMembers(team, week); /* แสดงเฉพาะสมาชิกที่ active ในสัปดาห์นี้ */
+    var displayMembers = activeMembers(team, week);
     displayMembers.forEach(function(memberName){
-      var isNewMemberW1 = (week === 1 && memberName === team.newMember);
       var pts    = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,team.id,memberName,dd)) d++; return d; })(); /* วันเช็คอินจริง ไม่รวม friend bonus */
       var isFull = (function(){
         var days=0; for(var dd=0;dd<7;dd++) if(isChecked(week,team.id,memberName,dd)) days++;
@@ -558,90 +559,97 @@ function renderCheckin(){
 
       var mtop = document.createElement('div');
       mtop.className = 'member-top';
-      var nameLabel = memberName + (isNewMemberW1 ? ' <span style="font-size:9px;background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:1px 6px;color:var(--text3);vertical-align:middle">เริ่ม W2</span>' : '');
-      mtop.innerHTML = '<div class="member-name">'+nameLabel+'</div>'
-        +'<div class="pts-badge'+(isNewMemberW1?' ':isFull?' full':'')+'">'+( isNewMemberW1?'—':(function(){var d=0;for(var dd=0;dd<7;dd++)if(isChecked(week,team.id,memberName,dd))d++;return d;})()+'/4')+'</div>';
+      mtop.innerHTML = '<div class="member-name">'+memberName+'</div>'
+        +'<div class="pts-badge'+(isFull?' full':'')+'">'+(function(){var d=0;for(var dd=0;dd<7;dd++)if(isChecked(week,team.id,memberName,dd))d++;return d;})()+'/4</div>';
       mc.appendChild(mtop);
 
-      var dotsRow = document.createElement('div');
-      dotsRow.className = 'day-dots';
+      /* Day Column grid */
+      var dayGrid = document.createElement('div');
+      dayGrid.className = 'day-cols';
 
       for(var di=0; di<7; di++){
-        /* capture loop vars in IIFE */
         (function(tid, mn, dayIdx){
           var on       = isChecked(week, tid, mn, dayIdx);
           var days     = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) d++; return d; })();
-          var blocked  = (!on && days >= 4); /* real-time ทุกครั้งที่ render */
-
+          var blocked  = (!on && days >= 4);
           var activeWk = currentActiveWeek();
           var isLocked = !isAdmin && week !== activeWk;
-          var isNewW1  = (week === 1 && mn === team.newMember);
+          var friendOn = isFriend(week, tid, mn, dayIdx);
+          var sportOn  = isSport(week, tid, mn, dayIdx);
+          var hasSport = !!weekSport[week];
+
+          var col = document.createElement('div');
+          col.className = 'day-col';
+
+          /* Label */
+          var lbl = document.createElement('div');
+          lbl.className = 'day-col-label';
+          lbl.textContent = DAYS[dayIdx];
+          col.appendChild(lbl);
+
+          /* Main dot */
           var dot = document.createElement('div');
           var cls = 'dot';
-          if(on)                              cls += ' active';
-          if(!blocked && !isLocked && !isNewW1) cls += ' tappable';
-          if(blocked || isLocked || isNewW1)  cls += ' capped';
-          dot.className   = cls;
-          dot.title       = DAY_FULL[dayIdx];
-          dot.textContent = DAYS[dayIdx];
-
+          if(on)                    cls += ' active';
+          if(!blocked && !isLocked) cls += ' tappable';
+          if(blocked || isLocked)   cls += ' capped';
+          dot.className = cls;
+          dot.title     = DAY_FULL[dayIdx];
           dot.addEventListener('click', function(){
-            var activeWk = currentActiveWeek();
+            var aw = currentActiveWeek();
             var curDays = (function(){ var d=0; for(var dd=0;dd<7;dd++) if(isChecked(week,tid,mn,dd)) d++; return d; })();
-            var curOn  = isChecked(week, tid, mn, dayIdx);
-
-            if(!isAdmin && week !== activeWk){
-              /* show week-locked modal */
-              openWeekLockedModal(week, activeWk);
-              return;
-            }
-            if(!curOn && curDays < 4){
-              openConfirmModal(week, tid, mn, dayIdx);
-              return;
-            }
-            if(curOn && isAdmin){
-              setChecked(week, tid, mn, dayIdx, false);
-              renderCheckin();
-              renderBoard();
-            }
+            var curOn = isChecked(week,tid,mn,dayIdx);
+            if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
+            if(!curOn && curDays < 4){ openConfirmModal(week,tid,mn,dayIdx); return; }
+            if(curOn && isAdmin){ setChecked(week,tid,mn,dayIdx,false); renderCheckin(); renderBoard(); }
           });
+          col.appendChild(dot);
 
-          dotsRow.appendChild(dot);
+          /* Sub dots row */
+          var subRow = document.createElement('div');
+          subRow.className = 'sub-dots';
+
+          /* Friend sub-dot */
+          var fd = document.createElement('div');
+          var fcls = 'sub-dot friend-dot';
+          if(!on) fcls += ' hidden';
+          else if(friendOn) fcls += ' active';
+          else if(!isLocked) fcls += ' tappable';
+          fd.className = fcls;
+          fd.title = '+ชวนเพื่อน';
+          fd.addEventListener('click', function(){
+            var aw = currentActiveWeek();
+            if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
+            if(!isChecked(week,tid,mn,dayIdx)) return;
+            setFriend(week,tid,mn,dayIdx,!isFriend(week,tid,mn,dayIdx));
+          });
+          subRow.appendChild(fd);
+
+          /* Sport sub-dot */
+          if(hasSport){
+            var sd = document.createElement('div');
+            var scls = 'sub-dot sport-dot';
+            if(!on) scls += ' hidden';
+            else if(sportOn) scls += ' active';
+            else if(!isLocked) scls += ' tappable';
+            sd.className = scls;
+            sd.title = '⚡ '+weekSport[week];
+            sd.addEventListener('click', function(){
+              var aw = currentActiveWeek();
+              if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
+              if(!isChecked(week,tid,mn,dayIdx)) return;
+              setSport(week,tid,mn,dayIdx,!isSport(week,tid,mn,dayIdx));
+            });
+            subRow.appendChild(sd);
+          }
+
+          col.appendChild(subRow);
+          dayGrid.appendChild(col);
         })(team.id, memberName, di);
       }
-      mc.appendChild(dotsRow);
+      mc.appendChild(dayGrid);
 
-      /* แถว +ชวนเพื่อน */
-      var friendRow = document.createElement('div');
-      friendRow.className = 'day-dots friend-row';
-      var friendLabel = document.createElement('span');
-      friendLabel.className = 'friend-label';
-      friendLabel.textContent = '+ชวนเพื่อน';
-      friendRow.appendChild(friendLabel);
-      for(var fi=0; fi<7; fi++){
-        (function(ftid, fmn, dayIdx){
-          var checkedOn = isChecked(week, ftid, fmn, dayIdx);
-          var friendOn  = isFriend(week, ftid, fmn, dayIdx);
-          var activeWk  = currentActiveWeek();
-          var isLocked  = !isAdmin && week !== activeWk;
-          var isNewW1   = (week === 1 && fmn === team.newMember);
-          var fdot = document.createElement('div');
-          var fcls = 'dot friend-dot';
-          if(friendOn)                                fcls += ' active';
-          if(checkedOn && !isLocked && !isNewW1)      fcls += ' tappable';
-          if(!checkedOn || isLocked || isNewW1)       fcls += ' capped';
-          fdot.className = fcls;
-          fdot.title     = DAY_FULL[dayIdx] + ' +ชวนเพื่อน';
-          fdot.addEventListener('click', function(){
-            var aw = currentActiveWeek();
-            if(!isAdmin && week !== aw){ openWeekLockedModal(week, aw); return; }
-            if(!isChecked(week, ftid, fmn, dayIdx)) return;
-            setFriend(week, ftid, fmn, dayIdx, !isFriend(week, ftid, fmn, dayIdx));
-          });
-          friendRow.appendChild(fdot);
-        })(team.id, memberName, fi);
-      }
-      mc.appendChild(friendRow);
+
 
       /* แถว +กีฬาโบนัส */
       if(weekSport[week]){
@@ -658,12 +666,11 @@ function renderCheckin(){
             var sportOn   = isSport(week,ftid,fmn,dayIdx);
             var activeWk  = currentActiveWeek();
             var isLocked  = !isAdmin && week !== activeWk;
-            var isNewW1   = (week===1 && fmn===team.newMember);
             var sdot = document.createElement('div');
             var scls = 'dot friend-dot sport-dot';
-            if(sportOn)                               scls += ' active';
-            if(checkedOn && !isLocked && !isNewW1)    scls += ' tappable';
-            if(!checkedOn || isLocked || isNewW1)     scls += ' capped';
+            if(sportOn)                    scls += ' active';
+            if(checkedOn && !isLocked)     scls += ' tappable';
+            if(!checkedOn || isLocked)     scls += ' capped';
             sdot.className = scls;
             sdot.title = DAY_FULL[dayIdx]+' +กีฬาโบนัส +2';
             sdot.addEventListener('click', function(){
@@ -672,31 +679,24 @@ function renderCheckin(){
               if(!isChecked(week,ftid,fmn,dayIdx)) return;
               setSport(week,ftid,fmn,dayIdx,!isSport(week,ftid,fmn,dayIdx));
             });
-            sportRow.appendChild(sdot);
-          })(team.id, memberName, si);
-        }
-        mc.appendChild(sportRow);
-      }
-
-      mlist.appendChild(mc);
-    });
-
-    /* กีฬาโบนัสประจำสัปดาห์ */
-    var sportName = weekSport[week];
-    if(!sportName && isAdmin){
-      var rollBanner = document.createElement('div');
-      rollBanner.style.cssText = 'margin:8px 0 4px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
-      rollBanner.innerHTML = '<span style="color:var(--text2)">⚡ ยังไม่มีกีฬาโบนัสสัปดาห์นี้</span><button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">🎲 สุ่มกีฬา</button>';
-      card.appendChild(rollBanner);
-    }
-    if(sportName){
-      var sportBanner = document.createElement('div');
-      sportBanner.style.cssText = 'margin:8px 0 4px;padding:8px 12px;border-radius:10px;background:var(--amber-bg,#FFF8E8);border:1px solid var(--amber-bd,#F0D080);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;';
-      var sportInfo = '<span style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚡</span><span><strong>กีฬาโบนัสสัปดาห์นี้:</strong> '+sportName+' <span style="color:var(--text2)">(+2 แต้ม)</span></span></span>';
-      var sportAdminBtn = isAdmin ? '<button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
+       us:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
       sportBanner.innerHTML = sportInfo + sportAdminBtn;
       card.appendChild(sportBanner);
     }
+    /* Legend */
+    if(weekSport[week]){
+      var legend = document.createElement('div');
+      legend.style.cssText = 'display:flex;gap:12px;padding:0 4px 4px;font-size:11px;color:var(--text3);align-items:center;flex-wrap:wrap';
+      legend.innerHTML = '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;border:1.5px dashed var(--green);display:inline-block"></span>+ชวนเพื่อน</span>'
+        +'<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;border:1.5px dashed var(--amber,#C8860A);display:inline-block"></span>⚡กีฬาโบนัส</span>';
+      card.appendChild(legend);
+    } else {
+      var legend2 = document.createElement('div');
+      legend2.style.cssText = 'display:flex;gap:12px;padding:0 4px 4px;font-size:11px;color:var(--text3);align-items:center';
+      legend2.innerHTML = '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:3px;border:1.5px dashed var(--green);display:inline-block"></span>+ชวนเพื่อน</span>';
+      card.appendChild(legend2);
+    }
+
     card.appendChild(mlist);
 
     /* บ๊วยประจำทีม */
@@ -788,7 +788,6 @@ function renderRaw(){
   rows.forEach(function(r){
     html += '<tr style="border-bottom:1px solid var(--border)">'
       +'<td style="padding:6px 8px;font-weight:500;color:var(--text);overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'
-      +(r.isNew ? '<span style="font-size:9px;background:var(--surface);border:1px solid var(--border2);border-radius:100px;padding:1px 4px;margin-right:2px;color:var(--text3)">W2+</span>' : '')
       +r.name+'</td>'
       +'<td style="padding:6px 4px">'
       +'<span style="font-size:10px;padding:1px 6px;border-radius:100px;background:'+r.team.color+'22;color:'+r.team.color+';font-weight:500;white-space:nowrap">'+r.team.name+'</span>'
