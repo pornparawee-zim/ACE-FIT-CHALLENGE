@@ -651,6 +651,22 @@ function renderCheckin(){
 
       mlist.appendChild(mc);
     }); /* end displayMembers.forEach */
+    /* Sport banner */
+    var sportName = weekSport[week];
+    if(sportName){
+      var sportBanner = document.createElement('div');
+      sportBanner.style.cssText = 'margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--amber-bg,#FFF8E8);border:1px solid var(--amber-bd,#F0D080);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
+      var sportInfo = '<span style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚡</span><span><strong>กีฬาโบนัสสัปดาห์นี้:</strong> '+sportName+' <span style="color:var(--text2)">(+2 แต้ม)</span></span></span>';
+      var sportAdminBtn = isAdmin ? '<button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
+      sportBanner.innerHTML = sportInfo + sportAdminBtn;
+      card.appendChild(sportBanner);
+    } else if(isAdmin){
+      var rollBanner = document.createElement('div');
+      rollBanner.style.cssText = 'margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
+      rollBanner.innerHTML = '<span style="color:var(--text2)">⚡ ยังไม่มีกีฬาโบนัสสัปดาห์นี้</span><button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">🎲 สุ่มกีฬา</button>';
+      card.appendChild(rollBanner);
+    }
+
     /* Legend */
     if(weekSport[week]){
       var legend = document.createElement('div');
