@@ -90,6 +90,9 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .friend-dot.active{background:var(--green);border-color:var(--green)}
 .friend-dot.active::after{content:'✓';font-size:11px;color:#fff;display:flex;align-items:center;justify-content:center;height:100%}
 .friend-dot.tappable:hover{border-color:var(--green);background:#e6f4ea}
+.sport-dot{border-color:var(--amber,#C8860A)!important}
+.sport-dot.active{background:var(--amber,#C8860A)!important;border-color:var(--amber,#C8860A)!important}
+.sport-dot.tappable:hover{border-color:var(--amber,#C8860A)!important;background:#FFF8E8!important}
 .dot.active{background:var(--green);border-color:var(--green);color:#fff}
 .dot.tappable{cursor:pointer}
 .dot.tappable:active{transform:scale(.88)}
@@ -289,27 +292,45 @@ var SB_KEY = 'sb_publishable_eMIAJRc_7Nl4jemG6wq-nw__SoXKVAk';
 var sb = null; /* initialized after SDK loads */
 
 var checked = {};
-var friends = {}; /* local cache: "w-tid-m-d" → true */
+var friends = {};
+var sports = {};      /* sport_bonus per day: ckey→true */
+var weekSport = {};   /* week→sport name */
+
+var SPORT_LIST = [
+  "โดดเชือก 500 ครั้ง",
+  "Golf",
+  "ว่ายน้ำ",
+  "เต้นแอโรบิก",
+  "พิลาทิส"
+]; /* local cache: "w-tid-m-d" → true */
 var pendingCheckin = null; /* { w, tid, m, d } waiting for confirm */
 
 function ckey(w,tid,m,d){ return w+'-'+tid+'-'+m+'-'+d; }
 function isChecked(w,tid,m,d){ return checked[ckey(w,tid,m,d)] === true; }
 function isFriend(w,tid,m,d){ return friends[ckey(w,tid,m,d)] === true; }
+function isSport(w,tid,m,d){ return sports[ckey(w,tid,m,d)] === true; }
 
 /* load all rows from Supabase into local cache, then render */
 function loadAll(){
-  sb.from('checkins').select('week,team_id,member,day,checked,friend')
+  sb.from('checkins').select('week,team_id,member,day,checked,friend,sport_bonus')
     .then(function(res){
       if(res.error){ console.error(res.error); return; }
       checked = {};
       friends = {};
+      sports  = {};
       res.data.forEach(function(r){
-        if(r.checked) checked[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
-        if(r.friend)  friends[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
+        if(r.checked)     checked[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
+        if(r.friend)      friends[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day] = true;
+        if(r.sport_bonus) sports[r.week+'-'+r.team_id+'-'+r.member+'-'+r.day]  = true;
       });
-      renderCheckin();
-      renderBoard();
-      renderRaw();
+      /* โหลดกีฬาโบนัสประจำสัปดาห์ */
+      sb.from('weekly_sport').select('week,sport').then(function(sr){
+        weekSport = {};
+        if(!sr.error && sr.data) sr.data.forEach(function(r){ weekSport[r.week] = r.sport; });
+        renderCheckin();
+        renderBoard();
+        renderRaw();
+      });
     });
 }
 
@@ -323,7 +344,7 @@ function setChecked(w,tid,m,d,val){
   /* sync to Supabase */
   if(val){
     sb.from('checkins').upsert(
-      { week:w, team_id:tid, member:m, day:d, checked:true, friend: friends[ckey(w,tid,m,d)]||false, updated_at: new Date().toISOString() },
+      { week:w, team_id:tid, member:m, day:d, checked:true, friend: friends[ckey(w,tid,m,d)]||false, sport_bonus: sports[ckey(w,tid,m,d)]||false, updated_at: new Date().toISOString() },
       { onConflict: 'week,team_id,member,day' }
     ).then(function(res){ if(res.error) console.error('upsert error', res.error); });
   } else {
@@ -354,10 +375,11 @@ function memberPts(w,tid,m){
   for(var d=0;d<7;d++){
     if(isChecked(w,tid,m,d)){
       n++;
-      if(isFriend(w,tid,m,d)) n++; /* +ชวนเพื่อน: +1 ในวันนั้น */
+      if(isFriend(w,tid,m,d)) n++; /* +ชวนเพื่อน: +1 */
+      if(isSport(w,tid,m,d))  n+=2; /* +กีฬาโบนัส: +2 */
     }
   }
-  return n; /* ไม่ cap — เช็คอิน 4 วัน + ชวนเพื่อน 4 วัน = 8 แต้มได้ */
+  return n;
 }
 /* toggle friend bonus for one day */
 function setFriend(w,tid,m,d,val){
@@ -380,6 +402,34 @@ function isWeekFinished(w){
   endOfWeek.setHours(23,59,59,999);
   return new Date() > endOfWeek;
 }
+function rollSport(){
+  var activeWk = currentActiveWeek();
+  if(weekSport[activeWk]){
+    if(!confirm('สัปดาห์ที่ '+activeWk+' มีกีฬาโบนัสแล้ว: "'+weekSport[activeWk]+'" สุ่มใหม่ใช่ไหม?')) return;
+  }
+  var pick = SPORT_LIST[Math.floor(Math.random()*SPORT_LIST.length)];
+  sb.from('weekly_sport')
+    .upsert({ week:activeWk, sport:pick }, { onConflict:'week' })
+    .then(function(res){
+      if(res.error){ alert('เกิดข้อผิดพลาด: '+res.error.message); return; }
+      weekSport[activeWk] = pick;
+      renderCheckin();
+      renderBoard();
+    });
+}
+
+function setSport(w,tid,m,d,val){
+  var k = ckey(w,tid,m,d);
+  if(val){ sports[k] = true; } else { delete sports[k]; }
+  sb.from('checkins')
+    .upsert(
+      { week:w, team_id:tid, member:m, day:d, checked:true, sport_bonus:val, updated_at:new Date().toISOString() },
+      { onConflict:'week,team_id,member,day' }
+    ).then(function(res){ if(res.error) console.error('sport upsert error', res.error); });
+  renderCheckin();
+  renderBoard();
+}
+
 function checkinDays(w,tid,m){
   /* นับวันเช็คอินจริง ไม่นับ friend bonus — ใช้สำหรับ BONUS/PENALTY threshold */
   var n=0; for(var d=0;d<7;d++) if(isChecked(w,tid,m,d)) n++;
@@ -570,9 +620,61 @@ function renderCheckin(){
         })(team.id, memberName, fi);
       }
       mc.appendChild(friendRow);
+
+      /* แถว +กีฬาโบนัส */
+      if(weekSport[week]){
+        var sportRow = document.createElement('div');
+        sportRow.className = 'day-dots friend-row';
+        var sportLabel = document.createElement('span');
+        sportLabel.className = 'friend-label';
+        sportLabel.style.color = 'var(--amber,#C8860A)';
+        sportLabel.textContent = '⚡กีฬาโบนัส';
+        sportRow.appendChild(sportLabel);
+        for(var si=0; si<7; si++){
+          (function(ftid,fmn,dayIdx){
+            var checkedOn = isChecked(week,ftid,fmn,dayIdx);
+            var sportOn   = isSport(week,ftid,fmn,dayIdx);
+            var activeWk  = currentActiveWeek();
+            var isLocked  = !isAdmin && week !== activeWk;
+            var isNewW1   = (week===1 && fmn===team.newMember);
+            var sdot = document.createElement('div');
+            var scls = 'dot friend-dot sport-dot';
+            if(sportOn)                               scls += ' active';
+            if(checkedOn && !isLocked && !isNewW1)    scls += ' tappable';
+            if(!checkedOn || isLocked || isNewW1)     scls += ' capped';
+            sdot.className = scls;
+            sdot.title = DAY_FULL[dayIdx]+' +กีฬาโบนัส +2';
+            sdot.addEventListener('click', function(){
+              var aw = currentActiveWeek();
+              if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
+              if(!isChecked(week,ftid,fmn,dayIdx)) return;
+              setSport(week,ftid,fmn,dayIdx,!isSport(week,ftid,fmn,dayIdx));
+            });
+            sportRow.appendChild(sdot);
+          })(team.id, memberName, si);
+        }
+        mc.appendChild(sportRow);
+      }
+
       mlist.appendChild(mc);
     });
 
+    /* กีฬาโบนัสประจำสัปดาห์ */
+    var sportName = weekSport[week];
+    if(!sportName && isAdmin){
+      var rollBanner = document.createElement('div');
+      rollBanner.style.cssText = 'margin:8px 0 4px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
+      rollBanner.innerHTML = '<span style="color:var(--text2)">⚡ ยังไม่มีกีฬาโบนัสสัปดาห์นี้</span><button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">🎲 สุ่มกีฬา</button>';
+      card.appendChild(rollBanner);
+    }
+    if(sportName){
+      var sportBanner = document.createElement('div');
+      sportBanner.style.cssText = 'margin:8px 0 4px;padding:8px 12px;border-radius:10px;background:var(--amber-bg,#FFF8E8);border:1px solid var(--amber-bd,#F0D080);display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;';
+      var sportInfo = '<span style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚡</span><span><strong>กีฬาโบนัสสัปดาห์นี้:</strong> '+sportName+' <span style="color:var(--text2)">(+2 แต้ม)</span></span></span>';
+      var sportAdminBtn = isAdmin ? '<button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
+      sportBanner.innerHTML = sportInfo + sportAdminBtn;
+      card.appendChild(sportBanner);
+    }
     card.appendChild(mlist);
 
     /* status */
