@@ -215,6 +215,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
     <button class="tab" data-tab="board"><i class="ti ti-chart-bar"></i>คะแนน</button>
     <button class="tab" data-tab="rules"><i class="ti ti-info-circle"></i>กติกา</button>
     <button class="tab" data-tab="raw"><i class="ti ti-table"></i>คะแนนดิบ</button>
+    <button class="tab" data-tab="fines"><i class="ti ti-coin"></i>💸 ค่าปรับ</button>
   </div>
 
   <div id="sec-checkin" class="section active">
@@ -225,6 +226,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
   </div>
   <div id="sec-board" class="section"></div>
   <div id="sec-raw" class="section"></div>
+  <div id="sec-fines" class="section"></div>
 
   <div id="sec-rules" class="section">
     <div class="stat-grid">
@@ -304,6 +306,7 @@ var checked = {};
 var friends = {};
 var sports = {};      /* sport_bonus per day: ckey→true */
 var weekSport = {};   /* week→sport name */
+var fines = {};       /* "week-tid-member"→amount */
 
 var SPORT_LIST = [
   "โดดเชือก 500 ครั้ง",
@@ -346,14 +349,21 @@ function loadAll(){
       sb.from('weekly_sport').select('week,sport').then(function(sr){
         weekSport = {};
         if(!sr.error && sr.data) sr.data.forEach(function(r){ weekSport[r.week] = r.sport; });
-        /* W1 default: เวทเทรนนิ่ง — ถ้ายังไม่มีใน DB จะ upsert ให้อัตโนมัติ */
         if(!weekSport[1]){
           weekSport[1] = 'เวทเทรนนิ่ง';
           sb.from('weekly_sport').upsert({week:1, sport:'เวทเทรนนิ่ง'},{onConflict:'week'}).then(function(){});
         }
-        renderCheckin();
-        renderBoard();
-        renderRaw();
+        /* โหลด fines */
+        sb.from('fines').select('week,team_id,member,amount,reason').then(function(fr){
+          fines = {};
+          if(!fr.error && fr.data) fr.data.forEach(function(r){
+            fines[r.week+'-'+r.team_id+'-'+r.member] = { amount: r.amount, reason: r.reason };
+          });
+          renderCheckin();
+          renderBoard();
+          renderRaw();
+          renderFines();
+        });
       });
     });
 }
@@ -804,6 +814,91 @@ function renderRaw(){
 }
 
 
+/* sync fines to Supabase — auto-calc from checkin data */
+function syncFines(){
+  for(var w=1; w<=TOTAL_WEEKS; w++){
+    if(!isWeekFinished(w)) continue;
+    TEAMS.forEach(function(team){
+      var mems = activeMembers(team, w);
+      mems.forEach(function(m){
+        var key = w+'-'+team.id+'-'+m;
+        var days = checkinDays(w, team.id, m);
+        if(days === 0 && !fines[key]){
+          /* โดนปรับ 100 บาท */
+          var fine = { amount: 100, reason: 'ไม่ออกกำลังกายเลยใน W'+w };
+          fines[key] = fine;
+          sb.from('fines').upsert(
+            { week:w, team_id:team.id, member:m, amount:100, reason:fine.reason },
+            { onConflict:'week,team_id,member' }
+          ).then(function(res){ if(res.error) console.error('fines upsert error', res.error); });
+        }
+      });
+    });
+  }
+  renderFines();
+}
+
+function renderFines(){
+  var el = document.getElementById('sec-fines');
+  if(!el) return;
+
+  /* sync ก่อนทุกครั้ง */
+  syncFines();
+
+  var html = '<div style="padding:16px 16px 8px">'
+    +'<div style="font-size:13px;color:var(--text2);margin-bottom:12px">ค่าปรับสะสมตลอด Challenge — คำนวณอัตโนมัติจากการเช็คอิน</div>'
+    +'</div>';
+
+  /* summary per team */
+  html += '<div style="margin:0 12px 16px;display:grid;grid-template-columns:1fr 1fr;gap:8px">';
+  TEAMS.forEach(function(team){
+    var total = 0;
+    Object.keys(fines).forEach(function(k){
+      if(k.indexOf('-'+team.id+'-') >= 0) total += fines[k].amount;
+    });
+    html += '<div style="background:'+team.color+'18;border:1px solid '+team.color+'44;border-radius:12px;padding:12px;text-align:center">'
+      +'<div style="font-size:18px">'+team.emoji+'</div>'
+      +'<div style="font-size:13px;font-weight:600;color:'+team.color+';margin:2px 0">'+team.name+'</div>'
+      +'<div style="font-size:22px;font-weight:800;color:var(--text)">'+total+'</div>'
+      +'<div style="font-size:11px;color:var(--text2)">บาท</div>'
+      +'</div>';
+  });
+  html += '</div>';
+
+  /* รายละเอียดรายคน */
+  html += '<div style="margin:0 12px 24px;border-radius:12px;overflow:hidden;border:1px solid var(--border)">';
+  html += '<div style="background:var(--surface);padding:10px 14px;font-size:12px;font-weight:600;color:var(--text2);border-bottom:1px solid var(--border)">รายละเอียดค่าปรับรายคน</div>';
+
+  var hasFine = false;
+  for(var w=1; w<=TOTAL_WEEKS; w++){
+    TEAMS.forEach(function(team){
+      var mems = activeMembers(team, w);
+      mems.forEach(function(m){
+        var key = w+'-'+team.id+'-'+m;
+        if(fines[key]){
+          hasFine = true;
+          var f = fines[key];
+          html += '<div style="display:flex;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);gap:10px">'
+            +'<span style="font-size:16px">'+team.emoji+'</span>'
+            +'<div style="flex:1">'
+            +'<div style="font-size:13px;font-weight:600">'+m+'</div>'
+            +'<div style="font-size:11px;color:var(--text2)">'+f.reason+'</div>'
+            +'</div>'
+            +'<div style="font-size:14px;font-weight:700;color:#E05252">'+f.amount+' บาท</div>'
+            +'</div>';
+        }
+      });
+    });
+  }
+
+  if(!hasFine){
+    html += '<div style="padding:24px;text-align:center;color:var(--text2);font-size:13px">🎉 ยังไม่มีค่าปรับ!</div>';
+  }
+
+  html += '</div>';
+  el.innerHTML = html;
+}
+
 function renderBoard(){
   var sorted = TEAMS.map(function(t){
     return { t:t, total:teamTotalPts(t.id), wk:teamWeekPts(week,t.id) };
@@ -875,6 +970,7 @@ document.querySelectorAll('.tab').forEach(function(btn){
     document.querySelectorAll('.section').forEach(function(s){ s.classList.remove('active'); });
     document.getElementById('sec-'+id).classList.add('active');
     if(id === 'raw') renderRaw();
+    if(id === 'fines') renderFines();
     if(id==='board') renderBoard();
   });
 });
