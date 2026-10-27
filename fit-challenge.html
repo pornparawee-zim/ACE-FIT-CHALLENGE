@@ -264,10 +264,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 <script>
 var TEAMS = [
-  { id:'gigi',    name:'กิ๊กิ๊',        badge:'badge-alpha',   color:'#E05252', members:['Griang','Art','Tap','More'] },
-  { id:'saming',  name:'สมิง',          badge:'badge-bravo',   color:'#2E86C1', members:['Zom','Wick','Min','Prem'] },
-  { id:'bigbird', name:'นกยักษ์',       badge:'badge-charlie', color:'#D4870A', members:['Tan','Muay','Toy','Ohm'] },
-  { id:'fishflow',name:'ปลาไหล',        badge:'badge-delta',   color:'#7B52C9', members:['Tee','Kim','Meow','Pae'] }
+  { id:'gigi',    name:'กิ๊กิ๊',  emoji:'💅', badge:'badge-alpha',   color:'#E05252', members:['Griang','Art','Tap','More'] },
+  { id:'saming',  name:'สมิง',    emoji:'🐯', badge:'badge-bravo',   color:'#2E86C1', members:['Zom','Wick','Min','Prem'] },
+  { id:'bigbird', name:'นกยักษ์', emoji:'🦅', badge:'badge-charlie', color:'#D4870A', members:['Tan','Muay','Toy','Ohm'] },
+  { id:'fishflow',name:'ปลาไหล', emoji:'🐍', badge:'badge-delta',   color:'#7B52C9', members:['Tee','Kim','Meow','Pae'] }
 ];
 /* รอบ 2: ทุกคนเริ่มพร้อมกัน W1 ครบ 4 คน */
 function activeMembers(team, w){
@@ -307,12 +307,21 @@ var weekSport = {};   /* week→sport name */
 
 var SPORT_LIST = [
   "โดดเชือก 500 ครั้ง",
-  "Golf",
+  "บาส",
+  "มวย",
+  "สเก็ต/สกี/สโนวบอด",
   "ว่ายน้ำ",
-  "เต้นแอโรบิก",
+  "ฟุตบอล",
+  "Badminton",
+  "กอล์ฟ",
   "พิลาทิส",
-  "เวทเทรนนิ่ง"
-]; /* local cache: "w-tid-m-d" → true */
+  "Yoga",
+  "ปิงปอง",
+  "ปั่นจักรยาน",
+  "ยิงธนู",
+  "เดินเร็ว",
+  "เทนนิส"
+]; /* W1=เวทเทรนนิ่ง ใช้ไปแล้ว ไม่อยู่ในลิส */ /* local cache: "w-tid-m-d" → true */
 var pendingCheckin = null; /* { w, tid, m, d } waiting for confirm */
 
 function ckey(w,tid,m,d){ return w+'-'+tid+'-'+m+'-'+d; }
@@ -548,7 +557,7 @@ function renderCheckin(){
     /* header */
     var hdr = document.createElement('div');
     hdr.className = 'team-header';
-    hdr.innerHTML = '<div><span class="team-badge '+team.badge+'">'+team.name+'</span></div>'
+    hdr.innerHTML = '<div><span class="team-badge '+team.badge+'">'+team.emoji+' '+team.name+'</span></div>'
       +'<div><div class="team-score-num">'+wpts+'</div><div class="team-score-label">แต้มสัปดาห์นี้</div></div>';
     card.appendChild(hdr);
 
@@ -621,29 +630,31 @@ function renderCheckin(){
 
 
 
-          /* Sport sub-dot — Admin only edit, 1/week per person */
-          if(hasSport){
+          /* Sport sub-dot — ทุกคนกดได้ แต่แก้ไข/ยกเลิกได้เฉพาะ Admin */
+          if(hasSport && on){
             var alreadySportWeek = false;
             for(var sd2=0;sd2<7;sd2++){ if(sd2!==dayIdx && isSport(week,tid,mn,sd2)){ alreadySportWeek=true; break; } }
 
-            /* ปุถุชน: เห็นเฉพาะวันที่กด active แล้ว / Admin: เห็นทุกวันที่เช็คอินแล้ว */
-            var showSd = sportOn || (isAdmin && on);
-            if(showSd){
+            /* แสดง dot ถ้า: เช็คอินแล้ว และ (ยังไม่มีกีฬาในสัปดาห์ หรือ วันนี้คือวันที่กดกีฬา หรือ Admin) */
+            var canSee = !alreadySportWeek || sportOn || isAdmin;
+            if(canSee){
               var sd = document.createElement('div');
               var scls = 'sub-dot sport-dot';
               if(sportOn) scls += ' active';
-              if(isAdmin && on && (!alreadySportWeek || sportOn)) scls += ' tappable';
+              /* กดได้ถ้า: ยังไม่มีกีฬาในสัปดาห์นี้ (ปุถุชน) หรือ Admin toggle ได้เสมอ */
+              var canTap = (!alreadySportWeek && !isLocked) || (isAdmin && !isLocked);
+              if(canTap) scls += ' tappable';
               sd.className = scls;
-              sd.title = '⚡ ' + weekSport[week] + (isAdmin ? ' (Admin: กดเพื่อ toggle)' : '');
+              sd.title = '⚡ ' + weekSport[week];
               sd.addEventListener('click', function(){
-                if(!isAdmin) return; /* ปุถุชนกดไม่ได้ */
                 var aw = currentActiveWeek();
-                if(week !== aw){ openWeekLockedModal(week,aw); return; }
+                if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
                 if(!isChecked(week,tid,mn,dayIdx)) return;
-                /* 1 ครั้ง/สัปดาห์ */
+                /* ปุถุชน: กดได้ครั้งแรก ยกเลิกไม่ได้ */
                 var hasSportAlready = false;
                 for(var sd3=0;sd3<7;sd3++){ if(sd3!==dayIdx && isSport(week,tid,mn,sd3)){ hasSportAlready=true; break; } }
-                if(hasSportAlready && !isSport(week,tid,mn,dayIdx)) return;
+                if(!isAdmin && hasSportAlready) return; /* ปุถุชนเปลี่ยนวันไม่ได้ */
+                if(!isAdmin && sportOn) return; /* ปุถุชนยกเลิกไม่ได้ */
                 setSport(week,tid,mn,dayIdx,!isSport(week,tid,mn,dayIdx));
               });
               subRow.appendChild(sd);
@@ -815,7 +826,7 @@ function renderBoard(){
     lbHtml += '<div class="lb-row">'
       +'<div class="lb-rank">'+(medals[i]||i+1)+'</div>'
       +'<div class="lb-body">'
-        +'<div class="lb-name"><span class="team-badge '+item.t.badge+'">'+item.t.name+'</span>'+tagHtml+'</div>'
+        +'<div class="lb-name"><span class="team-badge '+item.t.badge+'">'+item.t.emoji+' '+item.t.name+'</span>'+tagHtml+'</div>'
         +'<div class="lb-members">'+activeMembers(item.t, week).join(', ')+'</div>'
         +'<div class="lb-bar-wrap"><div class="lb-bar" style="width:'+pct+'%;background:'+item.t.color+'"></div></div>'
         +'<div class="lb-week">สัปดาห์นี้ '+item.wk+' แต้ม</div>'
