@@ -619,42 +619,35 @@ function renderCheckin(){
           var subRow = document.createElement('div');
           subRow.className = 'sub-dots';
 
-          /* Friend sub-dot */
-          var fd = document.createElement('div');
-          var fcls = 'sub-dot friend-dot';
-          if(!on) fcls += ' hidden';
-          else if(friendOn) fcls += ' active';
-          else if(!isLocked) fcls += ' tappable';
-          fd.className = fcls;
-          fd.title = '+ชวนเพื่อน';
-          fd.addEventListener('click', function(){
-            var aw = currentActiveWeek();
-            if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
-            if(!isChecked(week,tid,mn,dayIdx)) return;
-            setFriend(week,tid,mn,dayIdx,!isFriend(week,tid,mn,dayIdx));
-          });
-          subRow.appendChild(fd);
 
-          /* Sport sub-dot */
+
+          /* Sport sub-dot — Admin only edit, 1/week per person */
           if(hasSport){
-            var sd = document.createElement('div');
-            var scls = 'sub-dot sport-dot';
-            if(!on) scls += ' hidden';
-            else if(sportOn) scls += ' active';
-            else if(!isLocked) scls += ' tappable';
-            sd.className = scls;
-            sd.title = '⚡ '+weekSport[week];
-            sd.addEventListener('click', function(){
-              var aw = currentActiveWeek();
-              if(!isAdmin && week !== aw){ openWeekLockedModal(week,aw); return; }
-              if(!isChecked(week,tid,mn,dayIdx)) return;
-              /* 1 ครั้ง/สัปดาห์ — ถ้ากดวันอื่นแล้วมี sport อยู่แล้ว ให้ toggle เฉพาะวันนั้น */
-              var alreadySport = false;
-              for(var sd2=0;sd2<7;sd2++){ if(sd2!==dayIdx && isSport(week,tid,mn,sd2)){ alreadySport=true; break; } }
-              if(alreadySport && !isSport(week,tid,mn,dayIdx)) return; /* ห้ามเพิ่มวันใหม่ถ้ามีแล้ว */
-              setSport(week,tid,mn,dayIdx,!isSport(week,tid,mn,dayIdx));
-            });
-            subRow.appendChild(sd);
+            var alreadySportWeek = false;
+            for(var sd2=0;sd2<7;sd2++){ if(sd2!==dayIdx && isSport(week,tid,mn,sd2)){ alreadySportWeek=true; break; } }
+
+            /* ปุถุชน: เห็นเฉพาะวันที่กด active แล้ว / Admin: เห็นทุกวันที่เช็คอินแล้ว */
+            var showSd = sportOn || (isAdmin && on);
+            if(showSd){
+              var sd = document.createElement('div');
+              var scls = 'sub-dot sport-dot';
+              if(sportOn) scls += ' active';
+              if(isAdmin && on && (!alreadySportWeek || sportOn)) scls += ' tappable';
+              sd.className = scls;
+              sd.title = '⚡ ' + weekSport[week] + (isAdmin ? ' (Admin: กดเพื่อ toggle)' : '');
+              sd.addEventListener('click', function(){
+                if(!isAdmin) return; /* ปุถุชนกดไม่ได้ */
+                var aw = currentActiveWeek();
+                if(week !== aw){ openWeekLockedModal(week,aw); return; }
+                if(!isChecked(week,tid,mn,dayIdx)) return;
+                /* 1 ครั้ง/สัปดาห์ */
+                var hasSportAlready = false;
+                for(var sd3=0;sd3<7;sd3++){ if(sd3!==dayIdx && isSport(week,tid,mn,sd3)){ hasSportAlready=true; break; } }
+                if(hasSportAlready && !isSport(week,tid,mn,dayIdx)) return;
+                setSport(week,tid,mn,dayIdx,!isSport(week,tid,mn,dayIdx));
+              });
+              subRow.appendChild(sd);
+            }
           }
 
           col.appendChild(subRow);
