@@ -28,10 +28,27 @@
   --bg:#1A1916;--surface:#242320;--surface2:#2E2C28;
   --border:#3A3830;--border2:#4A4840;
   --text:#F0EDE6;--text2:#9B9790;--text3:#6B6760;
-  --green-bg:#0E2E1C;--green-bd:#1A5A38;--red-bg:#2E1410;
+  --green:#2D9E5F;--green-bg:#0E2E1C;--green-bd:#1A5A38;
+  --green-light:rgba(45,158,95,.15);
+  --red:#E05252;--red-bg:#2E1410;--red-bd:#7A2A20;
+  --amber:#C8860A;--amber-bg:rgba(200,134,10,.15);--amber-bd:rgba(200,134,10,.35);
   --blue:#5A9FE8;
   --a-bg:#0E1E30;--a-bd:#2A4A70;--b-bg:#0E2E1C;--b-bd:#1A5A38;
   --c-bg:#2A2010;--c-bd:#5A4010;--d-bg:#2A1020;--d-bd:#5A2848;
+  --font:'IBM Plex Sans Thai',sans-serif;--mono:'IBM Plex Mono',monospace;
+  --r:10px;--rl:14px;
+}}
+@media(prefers-color-scheme:light){:root{
+  --bg:#F5F3EE;--surface:#FFFFFF;--surface2:#F0EDE6;
+  --border:#E0DDD6;--border2:#C8C5BE;
+  --text:#1A1916;--text2:#6B6760;--text3:#9B9790;
+  --green:#1A7A45;--green-bg:#E8F5EE;--green-bd:#A8DFC0;
+  --green-light:#E8F5EE;
+  --red:#C0392B;--red-bg:#FFF0EE;--red-bd:#F0B0A8;
+  --amber:#8A5E0A;--amber-bg:#FFF8E8;--amber-bd:#F0D080;
+  --blue:#2A6FD8;
+  --a-bg:#FFF0F0;--a-bd:#F0C0C0;--b-bg:#F0F8FF;--b-bd:#C0D8F0;
+  --c-bg:#FFF8E8;--c-bd:#E8D090;--d-bg:#F8F0FF;--d-bd:#D0B0F0;
 }}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-height:100vh}
@@ -62,7 +79,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .section{display:none;padding:12px 16px 0}
 .section.active{display:block}
 
-.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:10px}
+.team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
+.tc-bg{position:absolute;inset:0;background-size:cover;background-position:center center;filter:blur(3px) brightness(.45);transform:scale(1.08);z-index:0;transition:opacity .3s}
+.team-card{min-height:280px}
+.tc-body{position:relative;z-index:1}
 .team-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .team-badge{font-size:11px;font-weight:600;padding:3px 9px;border-radius:100px;letter-spacing:.03em}
 .badge-alpha{background:var(--a-bg);color:var(--a-c);border:1px solid var(--a-bd)}
@@ -74,7 +94,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 .members-list{display:flex;flex-direction:column;gap:8px}
 @media(min-width:400px){.members-list{display:grid;grid-template-columns:repeat(2,1fr)}}
-.member-card{background:var(--surface2);border-radius:var(--r);padding:8px;overflow:hidden;min-width:0}
+.member-card{background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:var(--r);padding:8px;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,.5)}
+.member-card{background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
+@media(prefers-color-scheme:dark){.member-card{background:rgba(28,26,22,.88);border-color:rgba(255,255,255,.12)}}
+@media(prefers-color-scheme:light){.member-card{background:rgba(255,255,255,.9);border-color:rgba(255,255,255,.7)}}
 .member-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 @media(min-width:400px){.member-top{flex-direction:column;align-items:flex-start;gap:4px}}
 .member-name{font-size:13px;font-weight:600;color:var(--text)}
@@ -266,10 +289,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 <script>
 var TEAMS = [
-  { id:'gigi',    name:'กิ๊กิ๊',  emoji:'💅', badge:'badge-alpha',   color:'#E05252', members:['Griang','Art','Tap','More'] },
-  { id:'saming',  name:'สมิง',    emoji:'🐯', badge:'badge-bravo',   color:'#2E86C1', members:['Zom','Wick','Min','Prem'] },
-  { id:'bigbird', name:'นกยักษ์', emoji:'🦅', badge:'badge-charlie', color:'#D4870A', members:['Tan','Muay','Toy','Ohm'] },
-  { id:'fishflow',name:'ปลาไหล', emoji:'🐍', badge:'badge-delta',   color:'#7B52C9', members:['Tee','Kim','Meow','Pae'] }
+  { id:'gigi',    name:'กิ๊กิ๊',    emoji:'💅', badge:'badge-alpha',   color:'#E05252', members:['Griang','Art','Tap','More'],  img:'https://pornparawee-zim.github.io/ACE-FIT-CHALLENGE/images/gigi.jpg' },
+  { id:'saming',  name:'จามิงอ้วง', emoji:'🐯', badge:'badge-bravo',   color:'#2E86C1', members:['Zom','Wick','Min','Prem'],    img:'https://pornparawee-zim.github.io/ACE-FIT-CHALLENGE/images/saming.jpg' },
+  { id:'bigbird', name:'นกยักษ์',   emoji:'🦅', badge:'badge-charlie', color:'#D4870A', members:['Tan','Muay','Toy','Ohm'],     img:'https://pornparawee-zim.github.io/ACE-FIT-CHALLENGE/images/bigbird.jpg' },
+  { id:'fishflow',name:'ปลาไหล',   emoji:'🐍', badge:'badge-delta',   color:'#7B52C9', members:['Tee','Kim','Meow','Pae'],     img:'https://pornparawee-zim.github.io/ACE-FIT-CHALLENGE/images/fishflow.jpg' }
 ];
 /* รอบ 2: ทุกคนเริ่มพร้อมกัน W1 ครบ 4 คน */
 function activeMembers(team, w){
@@ -563,6 +586,16 @@ function renderCheckin(){
 
     var card = document.createElement('div');
     card.className = 'team-card';
+    /* bg image */
+    if(team.img){
+      var bg = document.createElement('div');
+      bg.className = 'tc-bg';
+      bg.style.backgroundImage = 'url('+team.img+')';
+      card.appendChild(bg);
+    }
+    /* content wrapper */
+    var tcBody = document.createElement('div');
+    tcBody.className = 'tc-body';
 
     /* header */
     var hdr = document.createElement('div');
@@ -683,21 +716,21 @@ function renderCheckin(){
     var sportName = weekSport[week];
     if(sportName){
       var sportBanner = document.createElement('div');
-      sportBanner.style.cssText = 'margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--amber-bg,#FFF8E8);border:1px solid var(--amber-bd,#F0D080);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
+      sportBanner.style.cssText = 'margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--amber-bg,rgba(255,248,232,.12));border:1px solid var(--amber-bd,rgba(240,208,128,.3));display:flex;align-items:center;justify-content:space-between;font-size:12px;';
       var sportInfo = '<span style="display:flex;align-items:center;gap:8px"><span style="font-size:16px">⚡</span><span><strong>กีฬาโบนัสสัปดาห์นี้:</strong> '+sportName+' <span style="color:var(--text2)">(+2 แต้ม)</span></span></span>';
       var sportAdminBtn = isAdmin ? '<button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--amber,#C8860A);background:transparent;color:var(--amber,#C8860A);cursor:pointer">🎲 สุ่มใหม่</button>' : '';
       sportBanner.innerHTML = sportInfo + sportAdminBtn;
-      card.appendChild(sportBanner);
+      tcBody.appendChild(sportBanner);
     } else if(isAdmin){
       var rollBanner = document.createElement('div');
       rollBanner.style.cssText = 'margin:0 0 8px;padding:8px 12px;border-radius:10px;background:var(--surface);border:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;font-size:12px;';
       rollBanner.innerHTML = '<span style="color:var(--text2)">⚡ ยังไม่มีกีฬาโบนัสสัปดาห์นี้</span><button onclick="rollSport()" style="font-size:11px;padding:3px 10px;border-radius:100px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer">🎲 สุ่มกีฬา</button>';
-      card.appendChild(rollBanner);
+      tcBody.appendChild(rollBanner);
     }
 
 
 
-    card.appendChild(mlist);
+    tcBody.appendChild(mlist);
 
     /* บ๊วยประจำทีม */
     if(isWeekFinished(week)){
@@ -706,9 +739,9 @@ function renderCheckin(){
       var zeroMembers = mems2.filter(function(m){ return checkinDays(week, team.id, m) === 0; });
       if(zeroMembers.length > 0){
         var buwayDiv = document.createElement('div');
-        buwayDiv.style.cssText = 'margin-top:8px;padding:8px 12px;border-radius:10px;background:#FFF0F0;border:1px solid #FFD0D0;font-size:12px;display:flex;align-items:center;gap:8px;';
+        buwayDiv.style.cssText = 'margin-top:8px;padding:8px 12px;border-radius:10px;background:var(--red-bg,#FFF0F0);border:1px solid var(--red-bd,#FFD0D0);font-size:12px;display:flex;align-items:center;gap:8px;';
         buwayDiv.innerHTML = '<span style="font-size:16px">😅</span><span><strong>บ๊วยสัปดาห์นี้: '+zeroMembers.join(', ')+'</strong> — ไม่ออกเลย! ปรับ 100 บาท + เซลฟี่มีม!</span>';
-        card.appendChild(buwayDiv);
+        tcBody.appendChild(buwayDiv);
       }
     }
 
@@ -716,8 +749,9 @@ function renderCheckin(){
     var sb = document.createElement('div');
     sb.className = 'status-bar '+statusCls;
     sb.innerHTML = '<i class="ti '+statusIcon+'"></i>'+statusMsg;
-    card.appendChild(sb);
+    tcBody.appendChild(sb);
 
+    card.appendChild(tcBody);
     wrap.appendChild(card);
   });
 }
@@ -856,7 +890,7 @@ function renderFines(){
     Object.keys(fines).forEach(function(k){
       if(k.indexOf('-'+team.id+'-') >= 0) total += fines[k].amount;
     });
-    html += '<div style="background:'+team.color+'18;border:1px solid '+team.color+'44;border-radius:12px;padding:12px;text-align:center">'
+    html += '<div style="background:'+team.color+'28;border:1px solid '+team.color+'66;border-radius:12px;padding:12px;text-align:center">'
       +'<div style="font-size:18px">'+team.emoji+'</div>'
       +'<div style="font-size:13px;font-weight:600;color:'+team.color+';margin:2px 0">'+team.name+'</div>'
       +'<div style="font-size:22px;font-weight:800;color:var(--text)">'+total+'</div>'
@@ -884,7 +918,7 @@ function renderFines(){
             +'<div style="font-size:13px;font-weight:600">'+m+'</div>'
             +'<div style="font-size:11px;color:var(--text2)">'+f.reason+'</div>'
             +'</div>'
-            +'<div style="font-size:14px;font-weight:700;color:#E05252">'+f.amount+' บาท</div>'
+            +'<div style="font-size:14px;font-weight:700;color:var(--red,#E05252)">'+f.amount+' บาท</div>'
             +'</div>';
         }
       });
