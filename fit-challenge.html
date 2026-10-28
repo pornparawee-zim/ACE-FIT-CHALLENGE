@@ -80,7 +80,7 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 .section.active{display:block}
 
 .team-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--rl);padding:14px;margin-bottom:10px;position:relative;overflow:hidden}
-.tc-bg{position:absolute;inset:0;background-size:cover;background-position:center center;filter:blur(3px) brightness(.45);transform:scale(1.08);z-index:0;transition:opacity .3s}
+.tc-bg{position:absolute;inset:0;background-size:cover;background-position:center center;filter:blur(1px) brightness(.65);transform:scale(1.04);z-index:0;transition:opacity .3s}
 .team-card{min-height:280px}
 .tc-body{position:relative;z-index:1}
 .team-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -94,10 +94,10 @@ html,body{background:var(--bg);font-family:var(--font);color:var(--text);min-hei
 
 .members-list{display:flex;flex-direction:column;gap:8px}
 @media(min-width:400px){.members-list{display:grid;grid-template-columns:repeat(2,1fr)}}
-.member-card{background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);border-radius:var(--r);padding:8px;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,.5)}
+.member-card{background:rgba(255,255,255,.65);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);border-radius:var(--r);padding:8px;overflow:hidden;min-width:0;border:1px solid rgba(255,255,255,.4)}
 .member-card{background:rgba(255,255,255,.82);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}
-@media(prefers-color-scheme:dark){.member-card{background:rgba(28,26,22,.88);border-color:rgba(255,255,255,.12)}}
-@media(prefers-color-scheme:light){.member-card{background:rgba(255,255,255,.9);border-color:rgba(255,255,255,.7)}}
+@media(prefers-color-scheme:dark){.member-card{background:rgba(28,26,22,.70);border-color:rgba(255,255,255,.10)}}
+@media(prefers-color-scheme:light){.member-card{background:rgba(255,255,255,.65);border-color:rgba(255,255,255,.4)}}
 .member-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:9px}
 @media(min-width:400px){.member-top{flex-direction:column;align-items:flex-start;gap:4px}}
 .member-name{font-size:13px;font-weight:600;color:var(--text)}
